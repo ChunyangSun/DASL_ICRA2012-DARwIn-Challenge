@@ -59,36 +59,33 @@ int main(void)
     motion_timer->Start();
     /////////////////////////////////////////////////////////////////////
 
-    	//MotionManager::GetInstance()->SetEnable(true);
- 	//Action::GetInstance()->m_Joint.SetEnableBody(true, true);// this opposes to the torque disable
-	//Action* Action::m_UniqueInstance = new Action();
-   	//Action::GetInstance()->Start(1);
     	MotionManager::GetInstance()->SetEnable(true);
+ 	//Action* Action::m_UniqueInstance = new Action();
+	Action::GetInstance()->m_Joint.SetEnableBody(true, true);// this opposes to the torque disable
+	
+   //	Action::GetInstance()->Start(1); usleep(1000);
+	Action::GetInstance()->Start(7);
+    	
 
  
    /* Init(stand up) pose */
-   	Action::GetInstance()->Start(1);
-   	Action::GetInstance()->Start(5);
-   	Action::GetInstance()->Start(6);
-   	Action::GetInstance()->Start(7);
-   	Action::GetInstance()->Start(8);
-   while(LinuxActionScript::m_is_running == 1) sleep(10);
-   	Action::GetInstance()->Start(9);
-   while(LinuxActionScript::m_is_running == 1) sleep(10);
-   	Action::GetInstance()->Start(10);
+   	//Action::GetInstance()->Start(1);
+
+   
     while(Action::GetInstance()->IsRunning()) usleep(8*1000);
 
     printf("Press the ENTER key to begin!\n");
     getchar();
-      //LinuxActionScript::m_is_running = 0;
+      LinuxActionScript::m_is_running = 0;
+	//Action::GetInstance()->Start(8);
 		//Action::GetInstance()->m_Joint.SetAngle(6, MotionStatus::m_CurrentJoints.GetValue(6));
 		//leftarm = JointData::GetAngle(int ID_R_SHOULDER_PITCH);  
 		//Action::GetInstance()->m_Joint.SetAngle(5, MotionStatus::m_CurrentJoints.GetValue(5));
 		//leftarm = MotionStatus::m_CurrentJoints.GetAngle(6);
 		//rightarm = MotionStatus::m_CurrentJoints.GetAngle(5);
-   // cm730.WriteWord(JointData::ID_R_SHOULDER_PITCH, MX28::P_TORQUE_ENABLE, 0, 0);
-  //  cm730.WriteWord(JointData::ID_R_SHOULDER_ROLL,  MX28::P_TORQUE_ENABLE, 0, 0);
-  //  cm730.WriteWord(JointData::ID_R_ELBOW,          MX28::P_TORQUE_ENABLE, 0, 0);
+    //cm730.WriteWord(JointData::ID_R_SHOULDER_PITCH, MX28::P_TORQUE_ENABLE, 0, 0);
+    //cm730.WriteWord(JointData::ID_R_SHOULDER_ROLL,  MX28::P_TORQUE_ENABLE, 0, 0);
+    //cm730.WriteWord(JointData::ID_R_ELBOW,          MX28::P_TORQUE_ENABLE, 0, 0);
 		//Action::GetInstance()->m_Joint.SetValue(1, 2000);
  		//Action::GetInstance()->m_Joint.SetValue(2, 2000);
 		
@@ -97,12 +94,7 @@ int main(void)
 		//Action::GetInstance()->m_Joint.SetAngle(6, -20);
 		//Action::GetInstance()->m_Joint.SetAngle(5, 20);
 
-   	Action::GetInstance()->Start(5);
-   	Action::GetInstance()->Start(6);
-   	Action::GetInstance()->Start(7);
-   	Action::GetInstance()->Start(8);
-   	Action::GetInstance()->Start(9);
-   	Action::GetInstance()->Start(10);
+   
    // LinuxActionScript::ScriptStart("script.asc");
    while(LinuxActionScript::m_is_running == 1) sleep(10);
 

@@ -15,7 +15,7 @@
 #include "MotionStatus.h"
 #include "MotionManager.h"
 #include "LinuxActionScript.h"
-
+#include "LinuxDARwIn.h"
 using namespace Robot;
 
 int StatusCheck::m_cur_mode     = READY;
@@ -95,6 +95,7 @@ void StatusCheck::Check(CM730 &cm730)
 	else if(m_cur_mode == DRIVE)
         {
             cm730.WriteByte(CM730::P_LED_PANNEL, 0x04, NULL);
+	    printf("Driving Mode!\n");
           //  LinuxActionScript::PlayMP3("../../../Data/mp3/Jane_Hotter Than That.mp3");
         }
     }
@@ -164,17 +165,26 @@ void StatusCheck::Check(CM730 &cm730)
             }
   	   else if(m_cur_mode == DRIVE)
             {
-                //MotionManager::GetInstance()->Reinitialize();
-                MotionManager::GetInstance()->SetEnable(true);
+                MotionManager::GetInstance()->Reinitialize();
+                MotionManager::GetInstance()->SetEnable(true);//GET INTO MAIN:CASES 
                 m_is_started = 1; //zero: can't control the joints
                 //LinuxActionScript::PlayMP3("../../../Data/mp3/Jane_Hotter Than That.mp3");
-
+		
                 // Joint Enable...
-                //Action::GetInstance()->m_Joint.SetEnableBody(true, true);
+       		Action::GetInstance()->m_Joint.SetEnableBody(true, true);//(enable, exclusive)
 
-                //Action::GetInstance()->Start(1);
-		cm730.WriteWord(3, MX28::P_TORQUE_ENABLE, 0, 0);
-    		cm730.WriteWord(4, MX28::P_TORQUE_ENABLE, 0, 0);
+		//Action::GetInstance()->m_Joint.JointData::SetEnableRightArmOnly(true,true);
+		//Action::GetInstance()->m_Joint.JointData::SetEnableLeftArmOnly(true,true);
+		//Action::GetInstance()->m_Joint.JointData::SetEnableLowerBody(true,true);
+		//Action::GetInstance()->Start(1);
+		
+		Action::GetInstance()->Start(7); 
+		 while(Action::GetInstance()->IsRunning() == true) usleep(1000);		
+		Action::GetInstance()->Start(14); //go to pedal
+		 while(Action::GetInstance()->IsRunning() == true) usleep(1000);	
+		Action::GetInstance()->Start(20); //go to steer
+		printf("Press the SPACE key to start/stop driving \n\n");
+		/*
     		cm730.WriteWord(7, MX28::P_TORQUE_ENABLE, 0, 0);
 		cm730.WriteWord(8, MX28::P_TORQUE_ENABLE, 0, 0);
     		cm730.WriteWord(9, MX28::P_TORQUE_ENABLE, 0, 0);
@@ -187,8 +197,22 @@ void StatusCheck::Check(CM730 &cm730)
     		cm730.WriteWord(16, MX28::P_TORQUE_ENABLE, 0, 0);
     		cm730.WriteWord(17, MX28::P_TORQUE_ENABLE, 0, 0);
     		cm730.WriteWord(18, MX28::P_TORQUE_ENABLE, 0, 0);
-    		cm730.WriteWord(19, MX28::P_TORQUE_ENABLE, 0, 0);
+    		//cm730.WriteWord(19, MX28::P_TORQUE_ENABLE, 0, 0);
   		
+		
+   		cm730.WriteByte(7, MX28::P_P_GAIN, 8, 0);
+		cm730.WriteByte(8, MX28::P_P_GAIN, 8, 0);
+		cm730.WriteByte(9, MX28::P_P_GAIN, 8, 0);
+		cm730.WriteByte(10, MX28::P_P_GAIN, 8, 0);
+		cm730.WriteByte(11, MX28::P_P_GAIN, 8, 0);
+		cm730.WriteByte(12, MX28::P_P_GAIN, 8, 0);
+		cm730.WriteByte(13, MX28::P_P_GAIN, 8, 0);
+		cm730.WriteByte(14, MX28::P_P_GAIN, 8, 0);
+		cm730.WriteByte(15, MX28::P_P_GAIN, 8, 0);
+		cm730.WriteByte(16, MX28::P_P_GAIN, 8, 0);
+		cm730.WriteByte(17, MX28::P_P_GAIN, 8, 0);
+		//cm730.WriteByte(18, MX28::P_P_GAIN, 8, 0);
+		*/
                 while(Action::GetInstance()->IsRunning() == true) usleep(8000);
             }
 	}

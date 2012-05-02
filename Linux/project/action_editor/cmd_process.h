@@ -95,7 +95,7 @@ void HelpCmd();
 void NextCmd();
 void PrevCmd();
 void PageCmd(int index);
-void TimeCmd();
+void TimeCmd(int time);
 void SpeedCmd();
 void PlayCmd(Robot::CM730 *cm730, Robot::LinuxMotionTimer *timer);
 void ListCmd();

@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
                     else if(strcmp(cmd, "b") == 0)
                         PrevCmd();						
                     else if(strcmp(cmd, "time") == 0)
-                        TimeCmd();
+                        TimeCmd(iparam[0]);
                     else if(strcmp(cmd, "speed") == 0)
                         SpeedCmd();
                     else if(strcmp(cmd, "page") == 0)

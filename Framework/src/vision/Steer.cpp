@@ -131,9 +131,7 @@ void Steer::Process()
 	
 	//printf("%d\n", scanLine1Center); //0--320
 	//printf("%d\n", scanLine2Center); //0--320
-	//currentImage->m_ImageData[center*currentImage->m_PixelSize + 0] = 255;
-       	//currentImage->m_ImageData[center*currentImage->m_PixelSize + 1] = 200;
-      	//currentImage->m_ImageData[center*currentImage->m_PixelSize + 2] = 200;
+
 	
 	//printf("rotation %f", rotation);//-30~30 with k = 0.2
 	
@@ -148,12 +146,12 @@ void Steer::Process()
 	}
 
 	//Lowpass Filter calculated sensor data
-//	rotation = m*rotation +(1-m)*old_rotation;
+	//rotation = m*rotation +(1-m)*old_rotation;
 	
 	rotation_diff = rotation - old_rotation;
 	//old_rotation = rotation;
 
-	//motor limit
+	
 /*	
 	if ((rotation - old_rotation)>500)
 	{
@@ -166,6 +164,7 @@ void Steer::Process()
 */	
 	Steer::Filter();
 
+	//motor limit
 	if (RotationInput>500)
 	{
 		RotationInput = 500;	
@@ -177,17 +176,17 @@ void Steer::Process()
 	
 	RotationInput = -RotationInput;
 	
-//	RotationInput = -(RotationInput + 250);
+	
 	//printf("rotation %f\n", rotation);
-	//printf("%lf\n", m_right_ini);
+	
 
 	printf("rotationinput %f\n", RotationInput); //-600~600
 	if(Action::GetInstance()->m_Joint.GetEnable(JointData::ID_R_ELBOW) == true)
 	Action::GetInstance()->m_Joint.SetValue(5, 2000 + RotationInput);
 	if(Action::GetInstance()->m_Joint.GetEnable(JointData::ID_L_ELBOW) == true)
 	Action::GetInstance()->m_Joint.SetValue(6, 2000 + RotationInput);
-	//Action::GetInstance()->m_Joint.SetValue(6, 2000 + rotation);
-//	usleep(50);
+	
+	//usleep(50);
 		//fprintf(stderr, "[STEER]");
 	
 }

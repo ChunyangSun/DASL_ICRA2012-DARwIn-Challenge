@@ -949,8 +949,11 @@ void PageCmd(int index)
 	bEdited = false;
 }
 
-void TimeCmd()
+void TimeCmd(int time)
 {
+	//GoToCursor(CMD_COL, CMD_ROW);
+	//printf("%d", time);
+	
 	Page.header.schedule = Action::TIME_BASE_SCHEDULE;
 	bEdited = true;
 	DrawPage();

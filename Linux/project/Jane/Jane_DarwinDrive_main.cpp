@@ -12,6 +12,10 @@
 #include <libgen.h>
 #include <signal.h>
 
+#include <termios.h>
+#include <term.h>
+#include <pthread.h>
+
 #include "minIni.h"
 #include "mjpg_streamer.h"
 #include "LinuxDARwIn.h"
@@ -74,6 +78,35 @@ void change_current_dir()
 void sighandler(int sig)
 {
     exit(0);
+}
+
+int _getch()
+{
+    struct termios oldt, newt;
+    int ch;
+    tcgetattr( STDIN_FILENO, &oldt );
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr( STDIN_FILENO, TCSANOW, &newt );
+    ch = getchar();
+    tcsetattr( STDIN_FILENO, TCSANOW, &oldt );
+    return ch;
+}
+
+void* pedal_thread(void* ptr)
+{
+	while(1){
+       	int ch = _getch();
+        if(ch == 0x20) {
+          		if(Action::GetInstance()->m_Joint.GetValue(15) >= 1800 && Action::GetInstance()->m_Joint.GetValue(15) <= 2000) {
+           			Action::GetInstance()->m_Joint.SetValue(15, 2200);
+          		}
+          		else {
+            			Action::GetInstance()->m_Joint.SetValue(15, 1900);
+        	   		}
+      			}
+			}
+	return NULL;
 }
 
 int main(void)
@@ -184,8 +217,12 @@ int main(void)
     cm730.WriteByte(CM730::P_LED_PANNEL, 0x01|0x02|0x04, NULL); //head LED turns yellow, camera on
 
     LinuxActionScript::PlayMP3("../../../Data/mp3/Demonstration ready mode.mp3");
-    Action::GetInstance()->Start(15); //kneeing position
+    Action::GetInstance()->Start(1); //standing up
     while(Action::GetInstance()->IsRunning()) usleep(8*1000);
+
+
+	pthread_t thread_t;
+    pthread_create(&thread_t, NULL, pedal_thread, NULL);
 
     while(1)
     {
@@ -292,7 +329,6 @@ int main(void)
         }
 	else if(StatusCheck::m_cur_mode == DRIVE)
 	{ 
-	    unsigned char r, g, b;
 	    roadtracker.Process(road_finder->GetPosition(LinuxCamera::GetInstance()->fbuffer->m_HSVFrame));
 	    for(int i = 0; i < rgb_output->m_NumberOfPixels; i++)
             {
@@ -364,15 +400,18 @@ int main(void)
             
 	case DRIVE:
 	     {		
-			//Action::GetInstance()->m_Joint.SetEnableBodyWithoutHead(false, true);
-			printf("ID7 %d", Action::GetInstance()->m_Joint.GetCCWSlope(7));
-			
-	  		Head::GetInstance()->m_Joint.SetEnableHeadOnly(false, false);//(enable, exclusive)
- 			Action::GetInstance()->m_Joint.JointData::SetEnableRightArmOnly(true,true);
-			Action::GetInstance()->m_Joint.JointData::SetEnableLeftArmOnly(true,true);
-			
-			Action::GetInstance()->m_Joint.SetValue(1,2000);
-			Action::GetInstance()->m_Joint.SetValue(2,2000);
+		
+		//printf("ID7 %d", Action::GetInstance()->m_Joint.GetCCWSlope(7));
+		//printf("HERE");
+		//MotionManager::GetInstance()->SetEnable(false);
+	  		
+		//MotionManager::GetInstance()->SetEnable(true);
+   				 
+
+		//	Action::GetInstance()->m_Joint.SetValue(1,2500);
+		//	Action::GetInstance()->m_Joint.SetValue(2,1500);
+               		
+
 	   
 	                //Walking::GetInstance()->m_Joint.SetEnableBodyWithoutHead(true, true);
 			
