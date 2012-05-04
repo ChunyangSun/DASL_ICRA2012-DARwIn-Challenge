@@ -22,7 +22,7 @@
 
 #include "Action.h"
 #include "Head.h"
-#include "Walking.h"
+
 #include "MX28.h"
 #include "MotionManager.h"
 #include "LinuxMotionTimer.h"
@@ -30,9 +30,10 @@
 #include "LinuxActionScript.h"
 #include "Jane_StatusCheck.h"
 //#include "Jane_DriveVision.h"
-#include "VisionMode.h"
+
 #include "Steer.h"
 #include "RoadTracker.h"
+#include "ImgProcess.h"
 
 #ifdef MX28_1024
 #define MOTION_FILE_PATH    "../../../Data/motion_1024.bin"
@@ -120,11 +121,13 @@ int main(void)
 
     minIni* ini = new minIni(INI_FILE_PATH);
     Image* rgb_output = new Image(Camera::WIDTH, Camera::HEIGHT, Image::RGB_PIXEL_SIZE);
-	
+    Image* grey_output = new Image(Camera::WIDTH, Camera::HEIGHT, Image::GREY_PIXEL_SIZE);;
+
     LinuxCamera::GetInstance()->Initialize(0);
     LinuxCamera::GetInstance()->SetCameraSettings(CameraSettings());    // set default
     LinuxCamera::GetInstance()->LoadINISettings(ini);                   // load from ini
-
+    
+    
     mjpg_streamer* streamer = new mjpg_streamer(Camera::WIDTH, Camera::HEIGHT);
 
     ColorFinder* ball_finder = new ColorFinder();
@@ -148,14 +151,15 @@ int main(void)
     blue_finder->LoadINISettings(ini, "BLUE");
     httpd::blue_finder = blue_finder;
 	 
-    ColorFinder* road_finder = new ColorFinder(); //look for road in black
+    ColorFinder* road_finder = new ColorFinder(15, 15, 0, 0, 0.3, 50.0); //look for road in black
     road_finder->LoadINISettings(ini);
     httpd::road_finder = road_finder;
 
     RoadTracker roadtracker = RoadTracker();
     Steer steer;
-
-    steer.currentImage = rgb_output;
+    ImgProcess imgprocess = ImgProcess();
+    //steer.currentImage = rgb_output;
+    //steer.currentImage = grey_output;
     httpd::ini = ini;
 
     //////////////////// Framework Initialize ////////////////////////////
@@ -169,11 +173,11 @@ int main(void)
         }
     }
 
-    Walking::GetInstance()->LoadINISettings(ini);
+   // Walking::GetInstance()->LoadINISettings(ini);
 
     MotionManager::GetInstance()->AddModule((MotionModule*)Action::GetInstance());
     MotionManager::GetInstance()->AddModule((MotionModule*)Head::GetInstance());
-    MotionManager::GetInstance()->AddModule((MotionModule*)Walking::GetInstance());
+   
 
     LinuxMotionTimer *motion_timer = new LinuxMotionTimer(MotionManager::GetInstance());
     motion_timer->Start();
@@ -216,7 +220,6 @@ int main(void)
 
     cm730.WriteByte(CM730::P_LED_PANNEL, 0x01|0x02|0x04, NULL); //head LED turns yellow, camera on
 
-    LinuxActionScript::PlayMP3("../../../Data/mp3/Demonstration ready mode.mp3");
     Action::GetInstance()->Start(1); //standing up
     while(Action::GetInstance()->IsRunning()) usleep(8*1000);
 
@@ -230,116 +233,31 @@ int main(void)
 
         Point2D ball_pos, red_pos, yellow_pos, blue_pos, road_pos;
 
+
 		///////////add vision here///////////////////////////////////////////////////////////////////
         LinuxCamera::GetInstance()->CaptureFrame(); 
         memcpy(rgb_output->m_ImageData, LinuxCamera::GetInstance()->fbuffer->m_RGBFrame->m_ImageData, 		   		LinuxCamera::GetInstance()->fbuffer->m_RGBFrame->m_ImageSize);
+	//ImgProcess::RGBtoGREY(LinuxCamera::GetInstance()->fbuffer); //called in image.cpp, so we dont need to call here.
+	//grey_output = LinuxCamera::GetInstance()->fbuffer->m_GREYFrame;
+  memcpy(grey_output->m_ImageData, LinuxCamera::GetInstance()->fbuffer->m_GREYFrame->m_ImageData, 		   		LinuxCamera::GetInstance()->fbuffer->m_GREYFrame->m_ImageSize);
 	
-        if(StatusCheck::m_cur_mode == READY || StatusCheck::m_cur_mode == VISION)
-        {
-            ball_pos = ball_finder->GetPosition(LinuxCamera::GetInstance()->fbuffer->m_HSVFrame);
-            red_pos = red_finder->GetPosition(LinuxCamera::GetInstance()->fbuffer->m_HSVFrame);
-            yellow_pos = yellow_finder->GetPosition(LinuxCamera::GetInstance()->fbuffer->m_HSVFrame);
-            blue_pos = blue_finder->GetPosition(LinuxCamera::GetInstance()->fbuffer->m_HSVFrame);
-            road_pos = road_finder->GetPosition(LinuxCamera::GetInstance()->fbuffer->m_HSVFrame);
-
-            unsigned char r, g, b;
-            for(int i = 0; i < rgb_output->m_NumberOfPixels; i++)
-            {
-                r = 0; g = 0; b = 0;
-                if(ball_finder->m_result->m_ImageData[i] == 1)      //ball color found(calibrated by user), turns pixel to orange
-                {
-                    r = 255;
-                    g = 128;
-                    b = 0;
-                }
-                if(red_finder->m_result->m_ImageData[i] == 1)
-                {
-                    if(ball_finder->m_result->m_ImageData[i] == 1)  //red color and ball color range overlap, turns pixel to green
-                    {
-                        r = 0;
-                        g = 255;
-                        b = 0;
-                    }
-                    else                                          //only red is found, turns the pixel to red
-                    {
-                        r = 255;
-                        g = 0;
-                        b = 0;
-                    }
-                }
-                if(yellow_finder->m_result->m_ImageData[i] == 1) 
-                {
-                    if(ball_finder->m_result->m_ImageData[i] == 1)//yellow color and ball color range overlap..
-                    {
-                        r = 0;
-                        g = 255;
-                        b = 0;
-                    }
-                    else
-                    {
-                        r = 255;					//only yellow is found, turns the pixel to yellow
-                        g = 255;
-                        b = 0;
-                    }
-                }
-                if(blue_finder->m_result->m_ImageData[i] == 1)
-                {
-                    if(ball_finder->m_result->m_ImageData[i] == 1)
-                    {
-                        r = 0;
-                        g = 255;
-                        b = 0;
-                    }
-                    else
-                    {
-                        r = 0;
-                        g = 0;
-                        b = 255;
-                    }
-                }
-		if(road_finder->m_result->m_ImageData[i] == 1)
-		{
-                        r = 128;
-                        g = 255;
-                        b = 128;
-		 } 
-
-                if(r > 0 || g > 0 || b > 0)
-                {                                 //if any color or ball is found, turns the pixel to corresponding color.
-                    rgb_output->m_ImageData[i * rgb_output->m_PixelSize + 0] = r;  
-                    rgb_output->m_ImageData[i * rgb_output->m_PixelSize + 1] = g;
-                    rgb_output->m_ImageData[i * rgb_output->m_PixelSize + 2] = b;
-                }
-            }
-        }  
-        else if(StatusCheck::m_cur_mode == SOCCER)
-        {
-           
-            tracker.Process(ball_finder->GetPosition(LinuxCamera::GetInstance()->fbuffer->m_HSVFrame));
-
-            for(int i = 0; i < rgb_output->m_NumberOfPixels; i++)
-            {
-                if(ball_finder->m_result->m_ImageData[i] == 1)
-                {
-                    rgb_output->m_ImageData[i*rgb_output->m_PixelSize + 0] = 255;
-                    rgb_output->m_ImageData[i*rgb_output->m_PixelSize + 1] = 128;
-                    rgb_output->m_ImageData[i*rgb_output->m_PixelSize + 2] = 0;
-                }
-            }
-        }
-	else if(StatusCheck::m_cur_mode == DRIVE)
+	
+	if(StatusCheck::m_cur_mode == DRIVE)
 	{ 
-	    roadtracker.Process(road_finder->GetPosition(LinuxCamera::GetInstance()->fbuffer->m_HSVFrame));
-	    for(int i = 0; i < rgb_output->m_NumberOfPixels; i++)
-            {
-		if(road_finder->m_result->m_ImageData[i] == 1)
-		{
-				rgb_output->m_ImageData[i*rgb_output->m_PixelSize + 0] = 128;
-                   		rgb_output->m_ImageData[i*rgb_output->m_PixelSize + 1] = 255;
-                   		rgb_output->m_ImageData[i*rgb_output->m_PixelSize + 2] = 128;
-		 }  
-	   }
-	   steer.Process();
+	    //imgprocess.Erosion(rgb_output);
+	    //ImgProcess::Dilation(rgb_output);
+	    //roadtracker.Process(road_finder->GetPosition(LinuxCamera::GetInstance()->fbuffer->m_HSVFrame));
+
+	  //  for(int i = 0; i < rgb_output->m_NumberOfPixels; i++)
+            //{
+		//if(road_finder->m_result->m_ImageData[i] == 1)
+		//{
+				//rgb_output->m_ImageData[i*rgb_output->m_PixelSize + 0] = 128;
+                   		//rgb_output->m_ImageData[i*rgb_output->m_PixelSize + 1] = 255;
+                   		//rgb_output->m_ImageData[i*rgb_output->m_PixelSize + 2] = 128;
+		 //}  
+	   //}
+	   //steer.Process();
           
 			//rgb_output->m_ImageData[(int) Steer().center*rgb_output->m_PixelSize + 0] = 255;
                    	//rgb_output->m_ImageData[(int) Steer().center*rgb_output->m_PixelSize + 1] = g;
@@ -347,7 +265,9 @@ int main(void)
         } //else if: DRIVE
       
 
-        streamer->send_image(rgb_output);
+        streamer->send_image(grey_output);
+        //streamer->send_image(rgb_output);
+
 
         if(StatusCheck::m_is_started == 0)
             continue;
@@ -356,48 +276,7 @@ int main(void)
         {
         case READY:
             break;
-        case SOCCER:
-	     {
-            	if(Action::GetInstance()->IsRunning() == 0)
-            	{
-
-		        if(follower.KickBall != 0)
-		        {
-		            Head::GetInstance()->m_Joint.SetEnableHeadOnly(true, true);
-		            Action::GetInstance()->m_Joint.SetEnableBodyWithoutHead(true, true);
-
-		            if(follower.KickBall == -1)
-		            {
-		                Action::GetInstance()->Start(12);   // RIGHT KICK
-		                fprintf(stderr, "RightKick! \n");
-		            }
-		            else if(follower.KickBall == 1)
-		            {
-		                Action::GetInstance()->Start(13);   // LEFT KICK
-		                fprintf(stderr, "LeftKick! \n");
-		            }
-		        }
-		 }
-	    }
-            break;
-        case MOTION:
-	     {
-		    if(LinuxActionScript::m_is_running == 0)
-		        LinuxActionScript::ScriptStart(SCRIPT_FILE_PATH);
-	     }
-            break;
-        case VISION:
-	     {
-            	int detected_color = 0;
-            	detected_color |= (red_pos.X == -1)? 0 : VisionMode::RED;
-            	detected_color |= (yellow_pos.X == -1)? 0 : VisionMode::YELLOW;
-            	detected_color |= (blue_pos.X == -1)? 0 : VisionMode::BLUE;
-
-            	if(Action::GetInstance()->IsRunning() == 0)
-                	VisionMode::Play(detected_color);
-             }
-	     break;
-            
+       
 	case DRIVE:
 	     {		
 		

@@ -106,6 +106,21 @@ void ImgProcess::RGBtoHSV(FrameBuffer *buf)
     }
 }
 
+void ImgProcess::RGBtoGREY(FrameBuffer *buf)
+{
+
+	int ir, ig, ib;
+
+    for(int i = 0; i < buf->m_RGBFrame->m_Width*buf->m_RGBFrame->m_Height; i++)
+    {
+        ir = buf->m_RGBFrame->m_ImageData[3*i+0];
+        ig = buf->m_RGBFrame->m_ImageData[3*i+1];
+        ib = buf->m_RGBFrame->m_ImageData[3*i+2];
+	
+	buf->m_GREYFrame->m_ImageData[i] = 0.2989*ir+0.5870*ig+0.1140*ib;
+    }
+}
+
 void ImgProcess::Erosion(Image* img)
 {
     int x, y;
@@ -240,3 +255,5 @@ void ImgProcess::VFlipYUV(Image* img)
         memcpy(img->m_ImageData+(img->m_Height-1-h)*sizeline, line1, sizeline);
     }
 }
+
+

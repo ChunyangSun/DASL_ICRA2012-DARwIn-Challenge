@@ -11,7 +11,6 @@
 #include "Jane_StatusCheck.h"
 #include "Head.h"
 #include "Action.h"
-#include "Walking.h"
 #include "MotionStatus.h"
 #include "MotionManager.h"
 #include "LinuxActionScript.h"
@@ -24,24 +23,7 @@ int StatusCheck::m_is_started   = 0;
 
 void StatusCheck::Check(CM730 &cm730)
 {
-    if(MotionStatus::FALLEN != STANDUP && m_cur_mode == SOCCER && m_is_started == 1)
-    {
-        Walking::GetInstance()->Stop();
-        while(Walking::GetInstance()->IsRunning() == 1) usleep(8000);
-
-        Action::GetInstance()->m_Joint.SetEnableBody(true, true);
-
-        if(MotionStatus::FALLEN == FORWARD)
-            Action::GetInstance()->Start(10);   // FORWARD GETUP
-        else if(MotionStatus::FALLEN == BACKWARD)
-            Action::GetInstance()->Start(11);   // BACKWARD GETUP
-
-        while(Action::GetInstance()->IsRunning() == 1) usleep(8000);
-
-        Head::GetInstance()->m_Joint.SetEnableHeadOnly(true, true);
-        Walking::GetInstance()->m_Joint.SetEnableBodyWithoutHead(true, true);
-    }
-
+   
     if(m_old_btn == MotionStatus::BUTTON)
         return;
 
@@ -57,7 +39,7 @@ void StatusCheck::Check(CM730 &cm730)
             m_cur_mode      = READY;
             LinuxActionScript::m_stop = 1;
 
-            Walking::GetInstance()->Stop();
+            //Walking::GetInstance()->Stop();
             //Action::GetInstance()->m_Joint.SetEnableBody(true, true);
 
             while(Action::GetInstance()->Start(15) == false) usleep(8000);
@@ -77,21 +59,7 @@ void StatusCheck::Check(CM730 &cm730)
             cm730.WriteByte(CM730::P_LED_PANNEL, 0x01|0x02|0x04, NULL);
             LinuxActionScript::PlayMP3("../../../Data/mp3/Demonstration ready mode.mp3");
         }
-        else if(m_cur_mode == SOCCER)
-        {
-            cm730.WriteByte(CM730::P_LED_PANNEL, 0x01, NULL);
-            LinuxActionScript::PlayMP3("../../../Data/mp3/Autonomous soccer mode.mp3");
-        }
-        else if(m_cur_mode == MOTION)
-        {
-            cm730.WriteByte(CM730::P_LED_PANNEL, 0x02, NULL);
-            LinuxActionScript::PlayMP3("../../../Data/mp3/Interactive motion mode.mp3");
-        }
-        else if(m_cur_mode == VISION)
-        {
-            cm730.WriteByte(CM730::P_LED_PANNEL, 0x04, NULL);
-            LinuxActionScript::PlayMP3("../../../Data/mp3/Vision processing mode.mp3");
-        }
+       
 	else if(m_cur_mode == DRIVE)
         {
             cm730.WriteByte(CM730::P_LED_PANNEL, 0x04, NULL);
@@ -106,63 +74,7 @@ void StatusCheck::Check(CM730 &cm730)
         {
             fprintf(stderr, "Start button pressed.. & started is false.. \n");
 
-            if(m_cur_mode == SOCCER)
-            {
-                MotionManager::GetInstance()->Reinitialize();
-                MotionManager::GetInstance()->SetEnable(true);
-                m_is_started = 1;
-                LinuxActionScript::PlayMP3("../../../Data/mp3/Start soccer demonstration.mp3");
-
-                Action::GetInstance()->m_Joint.SetEnableBody(true, true);
-
-                Action::GetInstance()->Start(9);
-                while(Action::GetInstance()->IsRunning() == true) usleep(8000);
-
-                Head::GetInstance()->m_Joint.SetEnableHeadOnly(true, true);
-                Walking::GetInstance()->m_Joint.SetEnableBodyWithoutHead(true, true);
-
-                MotionManager::GetInstance()->ResetGyroCalibration();
-                while(1)
-                {
-                    if(MotionManager::GetInstance()->GetCalibrationStatus() == 1)
-                    {
-                        LinuxActionScript::PlayMP3("../../../Data/mp3/Sensor calibration complete.mp3");
-                        break;
-                    }
-                    else if(MotionManager::GetInstance()->GetCalibrationStatus() == -1)
-                    {
-                        LinuxActionScript::PlayMP3Wait("../../../Data/mp3/Sensor calibration fail.mp3");
-                        MotionManager::GetInstance()->ResetGyroCalibration();
-                    }
-                    usleep(8000);
-                }
-            }
-            else if(m_cur_mode == MOTION)
-            {
-                MotionManager::GetInstance()->Reinitialize();
-                MotionManager::GetInstance()->SetEnable(true);
-                m_is_started = 1;
-                LinuxActionScript::PlayMP3("../../../Data/mp3/Start motion demonstration.mp3");
-
-                // Joint Enable..
-                Action::GetInstance()->m_Joint.SetEnableBody(true, true);
-
-                Action::GetInstance()->Start(1);
-                while(Action::GetInstance()->IsRunning() == true) usleep(8000);
-            }
-            else if(m_cur_mode == VISION)
-            {
-                MotionManager::GetInstance()->Reinitialize();
-                MotionManager::GetInstance()->SetEnable(true);
-                m_is_started = 1;
-                LinuxActionScript::PlayMP3("../../../Data/mp3/Start vision processing demonstration.mp3");
-
-                // Joint Enable...
-                Action::GetInstance()->m_Joint.SetEnableBody(true, true);
-
-                Action::GetInstance()->Start(1);
-                while(Action::GetInstance()->IsRunning() == true) usleep(8000);
-            }
+         }
   	   else if(m_cur_mode == DRIVE)
             {
                 MotionManager::GetInstance()->Reinitialize();
@@ -222,4 +134,4 @@ void StatusCheck::Check(CM730 &cm730)
             fprintf(stderr, "Start button pressed.. & started is true.. \n");
         }
     }
-}
+

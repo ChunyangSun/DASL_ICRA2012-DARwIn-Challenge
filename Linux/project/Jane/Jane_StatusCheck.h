@@ -15,10 +15,7 @@ namespace Robot
     enum {
         INITIAL,
         READY,
-        SOCCER,
-        MOTION,
-        VISION,
-	DRIVE,
+        DRIVE,
         MAX_MODE
     };
 

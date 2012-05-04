@@ -23,6 +23,7 @@ mjpg_streamer::mjpg_streamer(int width, int height)
     // TODO Auto-generated constructor stub
     input_yuv = new Image(width, height, Image::YUV_PIXEL_SIZE);
     input_rgb = new Image(width, height, Image::RGB_PIXEL_SIZE);
+    input_grey = new Image(width, height, Image::GREY_PIXEL_SIZE);
     global.buf = (unsigned char*)malloc(width*height*Image::YUV_PIXEL_SIZE);
     global.size = 0;
 
@@ -99,6 +100,8 @@ int mjpg_streamer::send_image(Image* img)
 			memcpy(input_yuv->m_ImageData, img->m_ImageData, img->m_ImageSize);
 		else if(img->m_PixelSize == Image::RGB_PIXEL_SIZE)
 			memcpy(input_rgb->m_ImageData, img->m_ImageData, img->m_ImageSize);
+		else if(img->m_PixelSize == Image::GREY_PIXEL_SIZE)
+			memcpy(input_grey->m_ImageData, img->m_ImageData, img->m_ImageSize);
 
 		pthread_mutex_lock(&global.db);
 
@@ -106,6 +109,8 @@ int mjpg_streamer::send_image(Image* img)
 			global.size = jpeg_utils::compress_yuyv_to_jpeg(input_yuv, global.buf, input_yuv->m_ImageSize, 80);
 		else if(img->m_PixelSize == Image::RGB_PIXEL_SIZE)
 			global.size = jpeg_utils::compress_rgb_to_jpeg(input_rgb, global.buf, input_rgb->m_ImageSize, 80);
+		else if(img->m_PixelSize == Image::GREY_PIXEL_SIZE)
+			global.size = jpeg_utils::compress_grey_to_jpeg(input_grey, global.buf, input_grey->m_ImageSize, 80);
 
 		pthread_cond_broadcast(&global.db_update);
 		pthread_mutex_unlock(&global.db);

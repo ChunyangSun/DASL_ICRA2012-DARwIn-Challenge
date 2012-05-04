@@ -39,6 +39,7 @@ private:
 public:
     static int compress_yuyv_to_jpeg(Image *src, unsigned char* buffer, int size, int quality);
     static int compress_rgb_to_jpeg(Image *src, unsigned char* buffer, int size, int quality);
+    static int compress_grey_to_jpeg(Image *src, unsigned char* buffer, int size, int quality);
 };
 
 #endif /* JPEG_UTILS_H_ */

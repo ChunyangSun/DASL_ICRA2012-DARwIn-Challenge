@@ -214,3 +214,55 @@ int jpeg_utils::compress_rgb_to_jpeg(Image *src, unsigned char* buffer, int size
 
     return (written);
 }
+
+int jpeg_utils::compress_grey_to_jpeg(Image *src, unsigned char* buffer, int size, int quality)
+{
+    struct jpeg_compress_struct cinfo;
+    struct jpeg_error_mgr jerr;
+    JSAMPROW row_pointer[1];
+    unsigned char *line_buffer, *grey;
+    int z;
+    static int written;
+
+    line_buffer = (unsigned char*)calloc (src->m_Width * 3, 1);
+    grey = src->m_ImageData;
+
+    cinfo.err = jpeg_std_error (&jerr);
+    jpeg_create_compress (&cinfo);
+    /* jpeg_stdio_dest (&cinfo, file); */
+    dest_buffer(&cinfo, buffer, size, &written);
+
+    cinfo.image_width = src->m_Width;
+    cinfo.image_height = src->m_Height;
+    cinfo.input_components = 3;
+    cinfo.in_color_space = JCS_RGB;
+
+    jpeg_set_defaults (&cinfo);
+    jpeg_set_quality (&cinfo, quality, TRUE);
+
+    jpeg_start_compress (&cinfo, TRUE);
+
+    z = 0;
+    while (cinfo.next_scanline < src->m_Height) {
+        int x;
+        unsigned char *ptr = line_buffer;
+
+        for (x = 0; x < src->m_Width; x++) {
+	int gr;
+	gr = grey[0];
+            *(ptr++) = (gr > 255) ? 255 : ((gr < 0) ? 0 : gr);
+
+            grey += 1;
+        }
+
+        row_pointer[0] = line_buffer;
+        jpeg_write_scanlines (&cinfo, row_pointer, 1);
+    }
+
+    jpeg_finish_compress (&cinfo);
+    jpeg_destroy_compress (&cinfo);
+
+    free (line_buffer);
+
+    return (written);
+} 

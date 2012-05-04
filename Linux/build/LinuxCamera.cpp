@@ -390,6 +390,7 @@ int LinuxCamera::ReadFrame()
     ImgProcess::VFlipYUV(fbuffer->m_YUVFrame);
     ImgProcess::YUVtoRGB(fbuffer);
     ImgProcess::RGBtoHSV(fbuffer);
+    ImgProcess::RGBtoGREY(fbuffer);
 
     if (-1 == ioctl (camera_fd, VIDIOC_QBUF, &buf))
         ErrorExit ("VIDIOC_QBUF");

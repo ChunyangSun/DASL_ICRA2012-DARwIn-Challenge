@@ -26,7 +26,7 @@ private:
 
     Image*                  input_yuv;
     Image*                  input_rgb;
-
+    Image*		    input_grey;
     context                 server;
 
     static void* server_thread(void* arg);

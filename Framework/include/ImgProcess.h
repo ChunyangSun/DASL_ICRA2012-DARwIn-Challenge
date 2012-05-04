@@ -17,7 +17,7 @@ namespace Robot
 	public:
 		static void YUVtoRGB(FrameBuffer *buf);
 		static void RGBtoHSV(FrameBuffer *buf);
-
+		static void RGBtoGREY(FrameBuffer *buf);
 		static void Erosion(Image* img);
         static void Erosion(Image* src, Image* dest);
 		static void Dilation(Image* img);
