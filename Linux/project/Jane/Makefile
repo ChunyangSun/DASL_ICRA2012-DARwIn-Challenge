@@ -6,18 +6,24 @@
 # License: GPL
 #
 ###############################################################
+#!/bin/sh
+
 
 TARGET = jane
 
-INCLUDE_DIRS = -I../../include -I../../../Framework/include
+INCLUDE_DIRS = -I../../include -I../../../Framework/include -I../../opencv 
 
 CXX = g++
 #CXXFLAGS += -O2 -DLINUX -Wall $(INCLUDE_DIRS)
 CXXFLAGS += -g -DLINUX -Wall $(INCLUDE_DIRS)
 #CXXFLAGS += -O2 -DDEBUG -DLINUX -Wall $(INCLUDE_DIRS)
-LFLAGS += -lpthread -ljpeg -lrt
 
-OBJECTS = VisionMode.o Jane_StatusCheck.o Jane_DarwinDrive_main.o
+# Linking (add flags as needed)
+LFLAGS = -lpthread -ljpeg -lrt 'pkg-config --libs opencv'
+
+
+
+OBJECTS = Jane_DarwinDrive_main.o
 
 all: $(TARGET)
 
