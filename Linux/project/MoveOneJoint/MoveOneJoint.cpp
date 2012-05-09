@@ -28,8 +28,6 @@
 #include "LinuxCM730.h"
 #include "LinuxActionScript.h"
 
-#include "RoadTracker.h"
-#include "Steer.h"
 #ifdef MX28_1024
 #define MOTION_FILE_PATH    "../../../Data/motion_1024.bin"
 #else
@@ -71,25 +69,8 @@ int main(void)
     change_current_dir();
 
     minIni* ini = new minIni(INI_FILE_PATH);
-    Image* rgb_output = new Image(Camera::WIDTH, Camera::HEIGHT, Image::RGB_PIXEL_SIZE);
 
-    LinuxCamera::GetInstance()->Initialize(0);
-    LinuxCamera::GetInstance()->SetCameraSettings(CameraSettings());    // set default
-    LinuxCamera::GetInstance()->LoadINISettings(ini);                   // load from ini
-
-    mjpg_streamer* streamer = new mjpg_streamer(Camera::WIDTH, Camera::HEIGHT);
-
-    ColorFinder* road_finder = new ColorFinder(180, 180, 0, 20, 0, 30, 0.07, 30); //look for road in black, saturation 0-10, value 0-12
-    //road_finder->LoadINISettings(ini);
-    httpd::road_finder = road_finder;
-    
-    RoadTracker roadtracker = RoadTracker();
-    Steer steer;			         //Steer Class, steer object
-    steer.currentImage = rgb_output;             //Steer class member
-    ImgProcess imgprocess = ImgProcess();
-
-    //httpd::ini = ini;
-
+   
     //////////////////// Framework Initialize ////////////////////////////
     if(MotionManager::GetInstance()->Initialize(&cm730) == false)
     {
@@ -149,39 +130,14 @@ int main(void)
     while(Action::GetInstance()->IsRunning()) usleep(8*1000);
 
     while(1)
-    {	
-	LinuxCamera::GetInstance()->CaptureFrame();
-        memcpy(rgb_output->m_ImageData, LinuxCamera::GetInstance()->fbuffer->m_RGBFrame->m_ImageData, LinuxCamera::GetInstance()->fbuffer->m_RGBFrame->m_ImageSize);
-	
-        //ColorFinder* greyscale = new ColorFinder(0, 15, 0, grey, 0.3, 50.0);
-	
-	Head::GetInstance()->m_Joint.SetEnableHeadOnly(true, true);
-
-	//find color using only saturation in HSV, 	
-	roadtracker.Process(road_finder->GetPosition(LinuxCamera::GetInstance()->fbuffer->m_HSVFrame));
-	    for(int i = 0; i < rgb_output->m_NumberOfPixels; i++)
-            {
-		if(road_finder->m_result->m_ImageData[i] == 1)
+    {
+       if (i < 30)
+	{	for (i = 0; i<30; i++)
 		{
-				rgb_output->m_ImageData[i*rgb_output->m_PixelSize + 0] = 128;
-                   		rgb_output->m_ImageData[i*rgb_output->m_PixelSize + 1] = 255;
-                   		rgb_output->m_ImageData[i*rgb_output->m_PixelSize + 2] = 128;
-		 }  
-	   }
-		
-	  steer.Process();
-	  streamer->send_image(rgb_output);
-
-/*
-	int j = 0;
-       if ( j < 30)
-	{	for (j = 0; j<30; j++)
-		{
-			Action::GetInstance()->m_Joint.SetAngle(1,2*j);
+			Action::GetInstance()->m_Joint.SetAngle(1,3*i);
 		}
 	}
 
- */   }
-
+    }
 	return 0;
 }

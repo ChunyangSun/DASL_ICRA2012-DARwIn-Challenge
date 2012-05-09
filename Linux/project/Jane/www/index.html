@@ -125,7 +125,7 @@ function imageOnclick() { // Clicking on the image will pause the stream
 <div id="webcam"><noscript><img src="/?action=snapshot" /></noscript></div>
 
 <div id="control" style="position: absolute; top: 285px;">
-    <form name="camera_panel" action="" onsubmit="return false;" style="background-color: navy; width: 304px; height: 90px; padding: 8px">
+    <form name="camera_panel" action="" onsubmit="return false;" style="background-color: navy; width: 304px; height: 120px; padding: 8px">
       <font color="WHITE">GAIN:  ( 0 ~ 255 )</font> <br>
       <input type="button" value="-1" onclick="send_command('gain_minus&value=1')">
       <input type="button" value="+1" onclick="send_command('gain_plus&value=1')">
@@ -149,179 +149,11 @@ function imageOnclick() { // Clicking on the image will pause the stream
 <div id="control" style="position: absolute; top: 6px; left: 345px;">
     <table width="320px" border="0">
     <tr>
-    <td id="td1" align="center" onClick="return extendmenu('1', this)" style="cursor:pointer; FONT-WEIGHT:normal; " bgcolor="#FFFFFF" width="80px" height="20px">[BALL]</td>
-    <td id="td2" align="center" onClick="return extendmenu('2', this)" style="cursor:pointer; FONT-WEIGHT:normal; " bgcolor="#FFFFFF" width="80px" height="20px">[RED]</td>
-    <td id="td3" align="center" onClick="return extendmenu('3', this)" style="cursor:pointer; FONT-WEIGHT:normal; " bgcolor="#FFFFFF" width="80px" height="20px">[YELLOW]</td>
-    <td id="td4" align="center" onClick="return extendmenu('4', this)" style="cursor:pointer; FONT-WEIGHT:normal; " bgcolor="#FFFFFF" width="80px" height="20px">[BLUE]</td>
-    <td id="td5" align="center" onClick="return extendmenu('5', this)" style="cursor:pointer; FONT-WEIGHT:normal; " bgcolor="#FFFFFF" width="80px" height="20px">[ROAD]</td>
+     <td id="td5" align="center" onClick="return extendmenu('5', this)" style="cursor:pointer; FONT-WEIGHT:normal; " bgcolor="#FFFFFF" width="80px" height="20px">[ROAD]</td>
     </tr>
     </table>
 
-    <div id="sc1" class="tabcontent"  style="background-color: navy; width: 304px; height: 240px; padding: 8px">
-        <form name="command_panel" action="" onsubmit="return false;">
-          <font color="WHITE"><b>BALL</b> HUE: ( 0 ~ 360 )</font> <br>
-          <input type="button" value="-1" onclick="send_command('hue_minus&value=1&section=ball')">
-          <input type="button" value="+1" onclick="send_command('hue_plus&value=1&section=ball')">
-          &nbsp;
-          <input type="button" value="-10" onclick="send_command('hue_minus&value=10&section=ball')">
-          <input type="button" value="+10" onclick="send_command('hue_plus&value=10&section=ball')">
-          <br /><br />
-          
-          <font color="WHITE">TOLERANCE: ( 0 ~ 179 )</font> <br>
-          <input type="button" value="-1" onclick="send_command('tolerance_minus&value=1&section=ball')">
-          <input type="button" value="+1" onclick="send_command('tolerance_plus&value=1&section=ball')">
-          &nbsp;
-          <input type="button" value="-10" onclick="send_command('tolerance_minus&value=10&section=ball')">
-          <input type="button" value="+10" onclick="send_command('tolerance_plus&value=10&section=ball')">
-          <br /><br />
-          
-          <font color="WHITE">MIN SATURATION: ( 0 ~ 100 )</font> <br>
-          <input type="button" value="-1" onclick="send_command('min_saturation_minus&value=1&section=ball')">
-          <input type="button" value="+1" onclick="send_command('min_saturation_plus&value=1&section=ball')">
-          &nbsp;
-          <input type="button" value="-10" onclick="send_command('min_saturation_minus&value=10&section=ball')">
-          <input type="button" value="+10" onclick="send_command('min_saturation_plus&value=10&section=ball')">
-          <br /><br />
-          
-          <font color="WHITE">MIN VALUE: ( 0 ~ 100 )</font> <br>
-          <input type="button" value="-1" onclick="send_command('min_value_minus&value=1&section=ball')">
-          <input type="button" value="+1" onclick="send_command('min_value_plus&value=1&section=ball')">
-          &nbsp;
-          <input type="button" value="-10" onclick="send_command('min_value_minus&value=10&section=ball')">
-          <input type="button" value="+10" onclick="send_command('min_value_plus&value=10&section=ball')">
-        <br><br>
-
-        <table width="300px"><tr align="center">
-          <td width="160px"><input type="button" value="RELOAD" onclick="send_command('reload&section=ball')" style="width:100px; height:30px;"></td>
-          <td width="160px"><input type="button" value="SAVE" onclick="send_command('save&section=ball')" style="width:100px; height:30px;"></td>
-        </tr></table>
-        </form>
-    </div>
-
-    <div id="sc2" class="tabcontent"  style="background-color: navy; width: 304px; height: 240px; padding: 8px">
-        <form name="command_panel" action="" onsubmit="return false;">
-          <font color="WHITE"><b>RED</b> HUE: ( 0 ~ 360 )</font> <br>
-          <input type="button" value="-1" onclick="send_command('hue_minus&value=1&section=red')">
-          <input type="button" value="+1" onclick="send_command('hue_plus&value=1&section=red')">
-          &nbsp;
-          <input type="button" value="-10" onclick="send_command('hue_minus&value=10&section=red')">
-          <input type="button" value="+10" onclick="send_command('hue_plus&value=10&section=red')">
-          <br /><br />
-          
-          <font color="WHITE">TOLERANCE: ( 0 ~ 179 )</font> <br>
-          <input type="button" value="-1" onclick="send_command('tolerance_minus&value=1&section=red')">
-          <input type="button" value="+1" onclick="send_command('tolerance_plus&value=1&section=red')">
-          &nbsp;
-          <input type="button" value="-10" onclick="send_command('tolerance_minus&value=10&section=red')">
-          <input type="button" value="+10" onclick="send_command('tolerance_plus&value=10&section=red')">
-          <br /><br />
-          
-          <font color="WHITE">MIN SATURATION: ( 0 ~ 100 )</font> <br>
-          <input type="button" value="-1" onclick="send_command('min_saturation_minus&value=1&section=red')">
-          <input type="button" value="+1" onclick="send_command('min_saturation_plus&value=1&section=red')">
-          &nbsp;
-          <input type="button" value="-10" onclick="send_command('min_saturation_minus&value=10&section=red')">
-          <input type="button" value="+10" onclick="send_command('min_saturation_plus&value=10&section=red')">
-          <br /><br />
-          
-          <font color="WHITE">MIN VALUE: ( 0 ~ 100 )</font> <br>
-          <input type="button" value="-1" onclick="send_command('min_value_minus&value=1&section=red')">
-          <input type="button" value="+1" onclick="send_command('min_value_plus&value=1&section=red')">
-          &nbsp;
-          <input type="button" value="-10" onclick="send_command('min_value_minus&value=10&section=red')">
-          <input type="button" value="+10" onclick="send_command('min_value_plus&value=10&section=red')">
-        <br><br>
-
-        <table width="300px"><tr align="center">
-          <td width="160px"><input type="button" value="RELOAD" onclick="send_command('reload&section=red')" style="width:100px; height:30px;"></td>
-          <td width="160px"><input type="button" value="SAVE" onclick="send_command('save&section=red')" style="width:100px; height:30px;"></td>
-        </tr></table>
-        </form>
-    </div>
-
-    <div id="sc3" class="tabcontent"  style="background-color: navy; width: 304px; height: 240px; padding: 8px">
-        <form name="command_panel" action="" onsubmit="return false;">
-          <font color="WHITE"><b>YELLOW</b> HUE: ( 0 ~ 360 )</font> <br>
-          <input type="button" value="-1" onclick="send_command('hue_minus&value=1&section=yellow')">
-          <input type="button" value="+1" onclick="send_command('hue_plus&value=1&section=yellow')">
-          &nbsp;
-          <input type="button" value="-10" onclick="send_command('hue_minus&value=10&section=yellow')">
-          <input type="button" value="+10" onclick="send_command('hue_plus&value=10&section=yellow')">
-          <br /><br />
-          
-          <font color="WHITE">TOLERANCE: ( 0 ~ 179 )</font> <br>
-          <input type="button" value="-1" onclick="send_command('tolerance_minus&value=1&section=yellow')">
-          <input type="button" value="+1" onclick="send_command('tolerance_plus&value=1&section=yellow')">
-          &nbsp;
-          <input type="button" value="-10" onclick="send_command('tolerance_minus&value=10&section=yellow')">
-          <input type="button" value="+10" onclick="send_command('tolerance_plus&value=10&section=yellow')">
-          <br /><br />
-          
-          <font color="WHITE">MIN SATURATION: ( 0 ~ 100 )</font> <br>
-          <input type="button" value="-1" onclick="send_command('min_saturation_minus&value=1&section=yellow')">
-          <input type="button" value="+1" onclick="send_command('min_saturation_plus&value=1&section=yellow')">
-          &nbsp;
-          <input type="button" value="-10" onclick="send_command('min_saturation_minus&value=10&section=yellow')">
-          <input type="button" value="+10" onclick="send_command('min_saturation_plus&value=10&section=yellow')">
-          <br /><br />
-          
-          <font color="WHITE">MIN VALUE: ( 0 ~ 100 )</font> <br>
-          <input type="button" value="-1" onclick="send_command('min_value_minus&value=1&section=yellow')">
-          <input type="button" value="+1" onclick="send_command('min_value_plus&value=1&section=yellow')">
-          &nbsp;
-          <input type="button" value="-10" onclick="send_command('min_value_minus&value=10&section=yellow')">
-          <input type="button" value="+10" onclick="send_command('min_value_plus&value=10&section=yellow')">
-        <br><br>
-
-        <table width="300px"><tr align="center">
-          <td width="160px"><input type="button" value="RELOAD" onclick="send_command('reload&section=yellow')" style="width:100px; height:30px;"></td>
-          <td width="160px"><input type="button" value="SAVE" onclick="send_command('save&section=yellow')" style="width:100px; height:30px;"></td>
-        </tr></table>
-        </form>
-    </div>
-
-    <div id="sc4" class="tabcontent"  style="background-color: navy; width: 304px; height: 240px; padding: 8px">
-        <form name="command_panel" action="" onsubmit="return false;">
-          <font color="WHITE"><b>BLUE</b> HUE: ( 0 ~ 360 )</font> <br>
-          <input type="button" value="-1" onclick="send_command('hue_minus&value=1&section=blue')">
-          <input type="button" value="+1" onclick="send_command('hue_plus&value=1&section=blue')">
-          &nbsp;
-          <input type="button" value="-10" onclick="send_command('hue_minus&value=10&section=blue')">
-          <input type="button" value="+10" onclick="send_command('hue_plus&value=10&section=blue')">
-          <br /><br />
-          
-          <font color="WHITE">TOLERANCE: ( 0 ~ 179 )</font> <br>
-          <input type="button" value="-1" onclick="send_command('tolerance_minus&value=1&section=blue')">
-          <input type="button" value="+1" onclick="send_command('tolerance_plus&value=1&section=blue')">
-          &nbsp;
-          <input type="button" value="-10" onclick="send_command('tolerance_minus&value=10&section=blue')">
-          <input type="button" value="+10" onclick="send_command('tolerance_plus&value=10&section=blue')">
-          <br /><br />
-          
-          <font color="WHITE">MIN SATURATION: ( 0 ~ 100 )</font> <br>
-          <input type="button" value="-1" onclick="send_command('min_saturation_minus&value=1&section=blue')">
-          <input type="button" value="+1" onclick="send_command('min_saturation_plus&value=1&section=blue')">
-          &nbsp;
-          <input type="button" value="-10" onclick="send_command('min_saturation_minus&value=10&section=blue')">
-          <input type="button" value="+10" onclick="send_command('min_saturation_plus&value=10&section=blue')">
-          <br /><br />
-          
-          <font color="WHITE">MIN VALUE: ( 0 ~ 100 )</font> <br>
-          <input type="button" value="-1" onclick="send_command('min_value_minus&value=1&section=blue')">
-          <input type="button" value="+1" onclick="send_command('min_value_plus&value=1&section=blue')">
-          &nbsp;
-          <input type="button" value="-10" onclick="send_command('min_value_minus&value=10&section=blue')">
-          <input type="button" value="+10" onclick="send_command('min_value_plus&value=10&section=blue')">
-        <br><br>
-
-        <table width="300px"><tr align="center">
-          <td width="160px"><input type="button" value="RELOAD" onclick="send_command('reload&section=blue')" style="width:100px; height:30px;"></td>
-          <td width="160px"><input type="button" value="SAVE" onclick="send_command('save&section=blue')" style="width:100px; height:30px;"></td>
-        </tr></table>
-        </form>
-    </div>
-
-	 <div id="sc5" class="tabcontent"  style="background-color: navy; width: 304px; height: 240px; padding: 8px">
+	 <div id="sc1" class="tabcontent"  style="background-color: navy; width: 304px; height: 360px; padding: 8px">
         <form name="command_panel" action="" onsubmit="return false;">
           <font color="WHITE"><b>ROAD</b> HUE: ( 0 ~ 360 )</font> <br>
           <input type="button" value="-1" onclick="send_command('hue_minus&value=1&section=road')">
@@ -347,12 +179,28 @@ function imageOnclick() { // Clicking on the image will pause the stream
           <input type="button" value="+10" onclick="send_command('min_saturation_plus&value=10&section=road')">
           <br /><br />
           
+	  <font color="WHITE">MAX SATURATION: ( 0 ~ 100 )</font> <br>
+          <input type="button" value="-1" onclick="send_command('max_saturation_minus&value=1&section=road')">
+          <input type="button" value="+1" onclick="send_command('max_saturation_plus&value=1&section=road')">
+          &nbsp;
+          <input type="button" value="-10" onclick="send_command('max_saturation_minus&value=10&section=road')">
+          <input type="button" value="+10" onclick="send_command('max_saturation_plus&value=10&section=road')">
+          <br /><br />
+
           <font color="WHITE">MIN VALUE: ( 0 ~ 100 )</font> <br>
           <input type="button" value="-1" onclick="send_command('min_value_minus&value=1&section=road')">
           <input type="button" value="+1" onclick="send_command('min_value_plus&value=1&section=road')">
           &nbsp;
           <input type="button" value="-10" onclick="send_command('min_value_minus&value=10&section=road')">
           <input type="button" value="+10" onclick="send_command('min_value_plus&value=10&section=road')">
+        <br><br>
+
+ 	<font color="WHITE">MAX VALUE: ( 0 ~ 100 )</font> <br>
+          <input type="button" value="-1" onclick="send_command('max_value_minus&value=1&section=road')">
+          <input type="button" value="+1" onclick="send_command('max_value_plus&value=1&section=road')">
+          &nbsp;
+          <input type="button" value="-10" onclick="send_command('max_value_minus&value=10&section=road')">
+          <input type="button" value="+10" onclick="send_command('max_value_plus&value=10&section=road')">
         <br><br>
 
         <table width="300px"><tr align="center">

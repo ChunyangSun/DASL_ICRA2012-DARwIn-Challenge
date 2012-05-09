@@ -40,19 +40,26 @@ namespace Robot
 		double p_gain;
 		double d_gain;
 		double RotationInput;
+		double GoalPosX, GoalPosY;
+		double Radius;
+		//double TurnAngle;
+
 	protected:
 
 	public:
 		bool DEBUG_PRINT;
 				
-		Image* currentImage;   //added
+		Image* currentImage;  
+
 		Steer();
 		~Steer();
 		
 
 		void Process();
-		void Filter();
 		void Initialize();
+		void CamPosToGoalPos(int CamX, int CamY);
+		void Filter();
+		
 	};
 }
 

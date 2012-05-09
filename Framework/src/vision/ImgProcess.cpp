@@ -6,7 +6,7 @@
  */
 
 #include <string.h>
-
+#include <stdio.h>
 #include "ImgProcess.h"
 
 using namespace Robot;
@@ -194,8 +194,9 @@ void ImgProcess::Dilation(Image* img)
     }
 
     memcpy(img->m_ImageData, temp_img, img->m_Width*img->m_Height);
-
+    
     delete[] temp_img;
+
 }
 
 void ImgProcess::Dilation(Image* src, Image* dest)

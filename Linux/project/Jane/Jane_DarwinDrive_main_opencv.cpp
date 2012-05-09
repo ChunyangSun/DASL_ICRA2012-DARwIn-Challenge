@@ -1,9 +1,12 @@
 /*
- * main.cpp
+ * Jane_darwinDrive_main.cpp
  *
  *  Created on: 2011. 1. 4.
  *      Author: robotis
  */
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui/highgui.hpp>
+
 #include <stdio.h>
 #include <unistd.h>
 #include <limits.h>
@@ -15,21 +18,23 @@
 #include <term.h>
 #include <pthread.h>
 
+
+//opencv headers
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <sys/un.h>
+
+#include <fcntl.h>
+#include <unistd.h>
+#include <math.h>
+
 #include "minIni.h"
-#include "mjpg_streamer.h"
 #include "LinuxDARwIn.h"
-
-#include "Action.h"
-#include "Head.h"
-
-#include "MX28.h"
-#include "MotionManager.h"
-#include "LinuxMotionTimer.h"
-#include "LinuxCM730.h"
-#include "LinuxActionScript.h"
-
-#include "RoadTracker.h"
 #include "Steer.h"
+#include "Action.h"
+
 #ifdef MX28_1024
 #define MOTION_FILE_PATH    "../../../Data/motion_1024.bin"
 #else
@@ -37,10 +42,11 @@
 #endif
 
 #define INI_FILE_PATH       "../../../Data/config.ini"
-#define SCRIPT_FILE_PATH    "script.asc"
 
 #define U2D_DEV_NAME0       "/dev/ttyUSB0"
 #define U2D_DEV_NAME1       "/dev/ttyUSB1"
+
+using namespace cv;
 
 LinuxCM730 linux_cm730(U2D_DEV_NAME0);
 CM730 cm730(&linux_cm730);
@@ -60,35 +66,68 @@ void sighandler(int sig)
     exit(0);
 }
 
+int _getch()
+{
+    struct termios oldt, newt;
+    int ch;
+    tcgetattr( STDIN_FILENO, &oldt );
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr( STDIN_FILENO, TCSANOW, &newt );
+    ch = getchar();
+    tcsetattr( STDIN_FILENO, TCSANOW, &oldt );
+    return ch;
+}
+
+void* pedal_thread(void* ptr)
+{
+	while(1){
+       	int ch = _getch();
+        if(ch == 0x20) {
+          		if(Action::GetInstance()->m_Joint.GetValue(15) >= 1800 && Action::GetInstance()->m_Joint.GetValue(15) <= 2000) {
+           			Action::GetInstance()->m_Joint.SetValue(15, 2200);
+          		}
+          		else {
+            			Action::GetInstance()->m_Joint.SetValue(15, 1900);
+        	   		}
+      			}
+			}
+	return NULL;
+}
+
 int main(void)
 {
-	int i = 0;
-    signal(SIGABRT, &sighandler);
-    signal(SIGTERM, &sighandler);
-    signal(SIGQUIT, &sighandler);
-    signal(SIGINT, &sighandler);
+    //opencv camera initialization
+	CvCapture* capture = cvCaptureFromCAM( 0 );
+	if( !capture ) {
+		fprintf( stderr, "ERROR: capture is NULL \n" );
+		getchar();
+		return -1;
+	}
+   
+   IplImage image;
 
+   image.width = 320;
+   image.depth = 240;
+ 
+// Create a window in which the captured images will be presented
+   NamedWindow( "mywindow", CV_WINDOW_AUTOSIZE );
+
+
+
+
+   signal(SIGABRT, &sighandler);
+   signal(SIGTERM, &sighandler);
+   signal(SIGQUIT, &sighandler);
+   signal(SIGINT, &sighandler);
+
+//???
     change_current_dir();
-
+//???
     minIni* ini = new minIni(INI_FILE_PATH);
-    Image* rgb_output = new Image(Camera::WIDTH, Camera::HEIGHT, Image::RGB_PIXEL_SIZE);
 
-    LinuxCamera::GetInstance()->Initialize(0);
-    LinuxCamera::GetInstance()->SetCameraSettings(CameraSettings());    // set default
-    LinuxCamera::GetInstance()->LoadINISettings(ini);                   // load from ini
 
-    mjpg_streamer* streamer = new mjpg_streamer(Camera::WIDTH, Camera::HEIGHT);
 
-    ColorFinder* road_finder = new ColorFinder(180, 180, 0, 20, 0, 30, 0.07, 30); //look for road in black, saturation 0-10, value 0-12
-    //road_finder->LoadINISettings(ini);
-    httpd::road_finder = road_finder;
-    
-    RoadTracker roadtracker = RoadTracker();
-    Steer steer;			         //Steer Class, steer object
-    steer.currentImage = rgb_output;             //Steer class member
-    ImgProcess imgprocess = ImgProcess();
-
-    //httpd::ini = ini;
 
     //////////////////// Framework Initialize ////////////////////////////
     if(MotionManager::GetInstance()->Initialize(&cm730) == false)
@@ -101,11 +140,11 @@ int main(void)
         }
     }
 
-    Walking::GetInstance()->LoadINISettings(ini);
+   // Walking::GetInstance()->LoadINISettings(ini);
 
     MotionManager::GetInstance()->AddModule((MotionModule*)Action::GetInstance());
     MotionManager::GetInstance()->AddModule((MotionModule*)Head::GetInstance());
-    MotionManager::GetInstance()->AddModule((MotionModule*)Walking::GetInstance());
+   
 
     LinuxMotionTimer *motion_timer = new LinuxMotionTimer(MotionManager::GetInstance());
     motion_timer->Start();
@@ -143,45 +182,51 @@ int main(void)
     else
         exit(0);
 
-    Action::GetInstance()->m_Joint.SetEnableBody(true, true);
-    MotionManager::GetInstance()->SetEnable(true);
- 
+
+   int p;
+
+  
+
+
+    Action::GetInstance()->m_Joint.SetEnableBody(true, true);			
+    MotionManager::GetInstance()->SetEnable(true);//False: motor turns off
+
+    Action::GetInstance()->Start(1); //standing up
     while(Action::GetInstance()->IsRunning()) usleep(8*1000);
 
-    while(1)
-    {	
-	LinuxCamera::GetInstance()->CaptureFrame();
-        memcpy(rgb_output->m_ImageData, LinuxCamera::GetInstance()->fbuffer->m_RGBFrame->m_ImageData, LinuxCamera::GetInstance()->fbuffer->m_RGBFrame->m_ImageSize);
-	
-        //ColorFinder* greyscale = new ColorFinder(0, 15, 0, grey, 0.3, 50.0);
-	
-	Head::GetInstance()->m_Joint.SetEnableHeadOnly(true, true);
 
-	//find color using only saturation in HSV, 	
-	roadtracker.Process(road_finder->GetPosition(LinuxCamera::GetInstance()->fbuffer->m_HSVFrame));
-	    for(int i = 0; i < rgb_output->m_NumberOfPixels; i++)
-            {
-		if(road_finder->m_result->m_ImageData[i] == 1)
-		{
-				rgb_output->m_ImageData[i*rgb_output->m_PixelSize + 0] = 128;
-                   		rgb_output->m_ImageData[i*rgb_output->m_PixelSize + 1] = 255;
-                   		rgb_output->m_ImageData[i*rgb_output->m_PixelSize + 2] = 128;
-		 }  
-	   }
-		
-	  steer.Process();
-	  streamer->send_image(rgb_output);
+    pthread_t thread_t;
+    pthread_create(&thread_t, NULL, pedal_thread, NULL);
+     
+    //steer.Process();
+          
 
-/*
-	int j = 0;
-       if ( j < 30)
-	{	for (j = 0; j<30; j++)
-		{
-			Action::GetInstance()->m_Joint.SetAngle(1,2*j);
+
+ 	int i = 0;
+    while(1){
+		// Get one frame
+		IplImage* frame = cvQueryFrame( capture );
+		if( !frame ) {
+		      fprintf( stderr, "ERROR: frame is null...\n" );
+		      getchar();
+		      break;
 		}
-	}
+		cvShowImage( "mywindow", frame );
+		cvReleaseCapture( &capture );
+		
 
- */   }
 
-	return 0;
+		printf("HERE");
+		//MotionManager::GetInstance()->SetEnable(false);
+  		int iniPos = Action::GetInstance()->m_Joint.GetValue(3);
+		
+		if (i<50){
+				Action::GetInstance()->m_Joint.SetValue(1,iniPos+ 4*i);
+				//Action::GetInstance()->m_Joint.SetValue(2,2000);
+				i++;
+		}	            
+			
+     	     }   
+    
+    return 0;
 }

@@ -16,19 +16,23 @@ ColorFinder::ColorFinder() :
         m_center_point(Point2D()),
         m_hue(356),
         m_hue_tolerance(15),
-        m_min_saturation(50),
-        m_min_value(10),
-        m_min_percent(0.07),
-        m_max_percent(30.0),
+        m_min_saturation(0), 
+	m_max_saturation(10), //jane edit
+        m_min_value(80),
+	m_max_value(100),    //jane edit
+        m_min_percent(0.07), //0.07
+        m_max_percent(30.0),  //30.0
         color_section(""),
         m_result(0)
 { }
 
-ColorFinder::ColorFinder(int hue, int hue_tol, int min_sat, int min_val, double min_per, double max_per) :
+ColorFinder::ColorFinder(int hue, int hue_tol, int min_sat, int max_sat, int min_val, int max_val, double min_per, double max_per) : //jane edit
         m_hue(hue),
         m_hue_tolerance(hue_tol),
         m_min_saturation(min_sat),
+	m_max_saturation(max_sat),
         m_min_value(min_val),
+	m_max_value(max_val),
         m_min_percent(min_per),
         m_max_percent(max_per),
         color_section(""),
@@ -64,21 +68,21 @@ void ColorFinder::Filtering(Image *img)
         if( h > 360 )
             h = h % 360;
 
-        if( ((int)s > m_min_saturation) && ((int)v > m_min_value) )
-        {
+        if( ((int)s > m_min_saturation) && ((int)s < m_max_saturation) && ((int)v > m_min_value) && ((int)v < m_max_value)) //jane edit
+        {  
             if(h_min <= h_max)
             {
                 if((h_min < (int)h) && ((int)h < h_max))
-                    m_result->m_ImageData[i]= 1;
+                    m_result->m_ImageData[i]= 1;   
                 else
-                    m_result->m_ImageData[i]= 0;
+                    m_result->m_ImageData[i]= 0;   
             }
             else
             {
                 if((h_min < (int)h) || ((int)h < h_max))
-                    m_result->m_ImageData[i]= 1;
+                    m_result->m_ImageData[i]= 1;  
                 else
-                    m_result->m_ImageData[i]= 0;
+                    m_result->m_ImageData[i]= 0;   
             }
         }
         else
@@ -99,7 +103,10 @@ void ColorFinder::LoadINISettings(minIni* ini, const std::string &section)
     if((value = ini->geti(section, "hue", INVALID_VALUE)) != INVALID_VALUE)             m_hue = value;
     if((value = ini->geti(section, "hue_tolerance", INVALID_VALUE)) != INVALID_VALUE)   m_hue_tolerance = value;
     if((value = ini->geti(section, "min_saturation", INVALID_VALUE)) != INVALID_VALUE)  m_min_saturation = value;
+    if((value = ini->geti(section, "max_saturation", INVALID_VALUE)) != INVALID_VALUE)  m_max_saturation = value; //jane edit
     if((value = ini->geti(section, "min_value", INVALID_VALUE)) != INVALID_VALUE)       m_min_value = value;
+    if((value = ini->geti(section, "max_value", INVALID_VALUE)) != INVALID_VALUE)       m_max_value = value; //jane edit
+
 
     double dvalue = -2.0;
     if((dvalue = ini->getd(section, "min_percent", INVALID_VALUE)) != INVALID_VALUE)    m_min_percent = dvalue;
@@ -118,7 +125,9 @@ void ColorFinder::SaveINISettings(minIni* ini, const std::string &section)
     ini->put(section,   "hue",              m_hue);
     ini->put(section,   "hue_tolerance",    m_hue_tolerance);
     ini->put(section,   "min_saturation",   m_min_saturation);
+    ini->put(section,   "max_saturation",   m_max_saturation); //jane edit
     ini->put(section,   "min_value",        m_min_value);
+    ini->put(section,   "max_value",        m_max_value);      //jane edit
     ini->put(section,   "min_percent",      m_min_percent);
     ini->put(section,   "max_percent",      m_max_percent);
 
@@ -131,7 +140,11 @@ Point2D& ColorFinder::GetPosition(Image* hsv_img)
 
     Filtering(hsv_img);
 
+    //ImgProcess::Erosion(m_result);
+    //ImgProcess::Erosion(m_result);
     ImgProcess::Erosion(m_result);
+    ImgProcess::Dilation(m_result);
+    ImgProcess::Dilation(m_result);
     ImgProcess::Dilation(m_result);
 
     for(int y = 0; y < m_result->m_Height; y++)
@@ -159,4 +172,5 @@ Point2D& ColorFinder::GetPosition(Image* hsv_img)
     }
 
     return m_center_point;
+
 }

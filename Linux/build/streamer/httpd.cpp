@@ -41,10 +41,6 @@ context* httpd::server;
 globals* httpd::pglobal;
 
 ColorFinder* httpd::finder;
-ColorFinder* httpd::ball_finder;
-ColorFinder* httpd::red_finder;
-ColorFinder* httpd::yellow_finder;
-ColorFinder* httpd::blue_finder;
 ColorFinder* httpd::road_finder;
 minIni*      httpd::ini;
 bool httpd::ClientRequest(false);
@@ -540,12 +536,7 @@ void httpd::command(int fd, char *parameter) {
         LOG("could not allocate memory\n");
         return;
       }
-
-      if(strcmp(section, "ball") == 0) finder = ball_finder;
-      else if(strcmp(section, "red") == 0) finder = red_finder;
-      else if(strcmp(section, "yellow") == 0) finder = yellow_finder;
-      else if(strcmp(section, "blue") == 0) finder = blue_finder;
-       else if(strcmp(section, "road") == 0) finder = road_finder;
+       if(strcmp(section, "road") == 0) finder = road_finder;
   }
 
   /*
@@ -696,6 +687,24 @@ void httpd::input_cmd(in_cmd_type cmd, float value, char* res_str)
         if(finder->m_min_saturation < 0) finder->m_min_saturation = 0;
         sprintf(res_str, "%d", finder->m_min_saturation);
         break;
+    case IN_CMD_MAX_SATURATION_SET:
+        if(finder == NULL) return;
+        finder->m_max_saturation = (int)value;
+        sprintf(res_str, "%d", (int)value);
+        break;
+    case IN_CMD_MAX_SATURATION_PLUS:
+        if(finder == NULL) return;
+        finder->m_max_saturation += (int)value;
+        if(finder->m_max_saturation > 100) finder->m_max_saturation = 100;
+        sprintf(res_str, "%d", finder->m_max_saturation);
+        break;
+    case IN_CMD_MAX_SATURATION_MINUS:
+        if(finder == NULL) return;
+        finder->m_max_saturation -= (int)value;
+        if(finder->m_max_saturation < 0) finder->m_max_saturation = 0;
+        sprintf(res_str, "%d", finder->m_max_saturation);
+        break;
+   
     case IN_CMD_MIN_VALUE_SET:
         if(finder == NULL) return;
         finder->m_min_value = (int)value;
@@ -713,7 +722,23 @@ void httpd::input_cmd(in_cmd_type cmd, float value, char* res_str)
         if(finder->m_min_value < 0) finder->m_min_value = 0;
         sprintf(res_str, "%d", finder->m_min_value);
         break;
-
+    case IN_CMD_MAX_VALUE_SET:
+        if(finder == NULL) return;
+        finder->m_max_value = (int)value;
+        sprintf(res_str, "%d", (int)value);
+        break;
+    case IN_CMD_MAX_VALUE_PLUS:
+        if(finder == NULL) return;
+        finder->m_max_value += (int)value;
+        if(finder->m_max_value > 100) finder->m_max_value = 100;
+        sprintf(res_str, "%d", finder->m_max_value);
+        break;
+    case IN_CMD_MAX_VALUE_MINUS:
+        if(finder == NULL) return;
+        finder->m_max_value -= (int)value;
+        if(finder->m_max_value < 0) finder->m_max_value = 0;
+        sprintf(res_str, "%d", finder->m_max_value);
+        break;
     case IN_CMD_WALK_MODE:
         if(value == 1)
         {
