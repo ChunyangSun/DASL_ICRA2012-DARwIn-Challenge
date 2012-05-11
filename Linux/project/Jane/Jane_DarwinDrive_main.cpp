@@ -178,25 +178,31 @@ int main(void)
 	//printf("left shoulder %f", Action::GetInstance()->m_Joint.GetAngle(2));
 	float delY = 0;
 	float count = 0;	
-	float lsp,lep;
+	float lsp,lep,rsp,rep;
+	float lspOld = -50;
+	float lepOld = 25;
+	float rspOld = 50;
+	float repOld = -25;
 
 	while (1) {
-		float lspOld = -50;
-		float lepOld = 25;
+
 		delY = 25*sin(count);
-		lsp = -delY*.4453+lspOld;
-		lep = -delY*1.8*.1799+lepOld;	//.1799
-		Action::GetInstance()->m_Joint.SetAngle(1, 50);  //ccw 90
+		lsp = delY*.4453+lspOld;
+		lep = delY*1.8*.1799+lepOld;	//.1799
+
+		rsp = delY*.4453+rspOld;
+		rep = delY*1.8*.1799+repOld;
+		//Action::GetInstance()->m_Joint.SetAngle(1, 50);  //ccw 90
+		Action::GetInstance()->m_Joint.SetAngle(1, rsp);  //ccw 90
 		//Action::GetInstance()->m_Joint.SetAngle(2, -50); //cw left shoulder -90
 		Action::GetInstance()->m_Joint.SetAngle(2, lsp); //cw left shoulder -90
-		Action::GetInstance()->m_Joint.SetAngle(5, -25); //cw right elbow -90
+		//Action::GetInstance()->m_Joint.SetAngle(5, -25); //cw right elbow -90
+		Action::GetInstance()->m_Joint.SetAngle(5, rep); //cw right elbow -90
 		//Action::GetInstance()->m_Joint.SetAngle(6, 25);  //ccw 90 left elbow
 		Action::GetInstance()->m_Joint.SetAngle(6, lep);  //ccw 90 left elbow
 		Action::GetInstance()->m_Joint.SetAngle(3, -40); //right roll
 		Action::GetInstance()->m_Joint.SetAngle(4, 40); //cw left shoulder roll-90
 
-		lspOld = lsp;
-		lepOld = lep;
 		count += .0000002*3.141592654;
 	}
 	/*int j = 0;
