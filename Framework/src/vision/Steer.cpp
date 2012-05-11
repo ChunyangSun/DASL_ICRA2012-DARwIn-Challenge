@@ -27,15 +27,15 @@ Steer::Steer()
 {
 	DEBUG_PRINT = false;
 
-	OffsetGain = -0.01;      
-	AngleGain = 0.4;
+	OffsetGain = 0.1;      
+	AngleGain = 0.2;//0.3
 	rotation = 0.0;
 	old_rotation = 0.0;
 	rotation_diff = 0;
 	width =  Camera::WIDTH;
 	height = Camera::HEIGHT;	
 	scanLine1 = 80;
-	scanLine2 = height - 80;
+	scanLine2 = height - 120;
 	scanLine1Center = 0;
 	scanLine2Center = 0;
 	begp1 = -1; 
@@ -44,15 +44,22 @@ Steer::Steer()
 	endp2 = -1;
 	i = 0;
 	j = 0;
-	m = 0.05; //filter const for rotation
+	m = 0.15; //filter const for rotation
 	offset = width/2;
 	m_left_ini = 0;
 	m_right_ini = 0;
 	p_gain = 2;
-	d_gain = 0.22;
+	//d_gain = 0.22;
+	d_gain = 2;
 	RotationInput = 0;
 	currentImage = NULL;	
-	TurnAngle = 0;		
+	TurnAngle = 0;	
+	delY = 0;	
+	delY_Old = 0;
+	lspOld = -50;
+	lepOld = 25;
+	rspOld = 50;
+	repOld = -25;		
 }
 
 Steer::~Steer()
@@ -60,10 +67,11 @@ Steer::~Steer()
 	//Do not distruct anything
 }	
 
+
 void Steer::Initialize()
 {
-	rotation = m*rotation +(1-m)*old_rotation;
-	old_rotation = rotation;
+	//rotation = m*rotation +(1-m)*old_rotation
+
 
 	m_left_ini = MotionStatus::m_CurrentJoints.GetValue(JointData::ID_R_ELBOW);
 	m_right_ini = MotionStatus::m_CurrentJoints.GetValue(JointData::ID_L_ELBOW);
@@ -105,8 +113,8 @@ Point2D Steer::CamPosToGoalPos(double CamX, double CamY)
 
 		//Radius = 2*(GoalPosX*GoalPosX + GoalPosY*GoalPosY)/GoalPosX;   
 		//TurnAngle = 180/PI*atan(GoalPosY/GoalPosX); //-pi/2 to pi/2
-		printf("camera width %f", (CamX - Camera::WIDTH/2));
-		printf("GoalAngleX %f", GoalAngleX);
+		//printf("camera width %f", (CamX - Camera::WIDTH/2));
+		//printf("GoalAngleX %f", GoalAngleX);
 		//printf("DX %lf\n", GoalPos.X);
 		//printf("DY %lf\n\n", GoalPos.Y);
 
@@ -185,52 +193,40 @@ void Steer::Process()
 	{		
 		rotation = OffsetGain*(GoalPos2.X+GoalPos1.X)/2 + AngleGain*TurnAngle;          //k*TurnAngle; //k*((scanLine1Center+scanLine2Center)/2-offset);
 	}
-	printf("offset %f", (GoalPos2.X+GoalPos1.X)/2);
-	//Lowpass Filter calculated sensor data
-	//rotation = m*rotation +(1-m)*old_rotation;
 	
 	rotation_diff = rotation - old_rotation;
-	//old_rotation = rotation;
 
-	
-/*	
-	if ((rotation - old_rotation)>500)
-	{
-		rotation = old_rotation + 500;	
-	}
-	else if((rotation - old_rotation)<-500)
-	{
-		rotation = old_rotation - 500;
-	}
-*/	
 	Steer::Filter();
 
 	//motor limit
-	if (RotationInput>90)
+	float maxRotation = 20;
+	if (RotationInput>maxRotation)
 	{
-		RotationInput = 90;	
+		RotationInput = maxRotation;	
 	}
-	else if (RotationInput < -90)
+	else if (RotationInput < -maxRotation)
 	{
-		RotationInput = -90;	
+		RotationInput = -maxRotation;	
 	}
 	
-	RotationInput = -RotationInput;
+	RotationInput = -RotationInput/maxRotation;
 	
 	
 	//printf("rotation %f\n", rotation);
-	printf("scan1x %d", scanLine1Center);   //0--320
-	printf("scan2x %d\n", scanLine2Center); //0--320
+	//printf("scan1x %d", scanLine1Center);   //0--320
+	//printf("scan2x %d\n", scanLine2Center); //0--320
 	//printf("scanLine1 %d\n", scanLine1);
 	//printf("scanLine2 %d\n", scanLine2);
 	//printf("rotation %f", rotation); //-30~30 with k = 0.2
 	printf("turnangle %f\n", TurnAngle);
-	printf("g1 x%f\n", GoalPos1.X);
-	printf("g2 x%f\n", GoalPos2.X);
-	printf("g1 y%f\n", GoalPos1.Y);
-	printf("g2 y%f\n", GoalPos2.Y);
-/*
+	//printf("g1 x%f\n", GoalPos1.X);
+	//printf("g2 x%f\n", GoalPos2.X);
+	//printf("g1 y%f\n", GoalPos1.Y);
+	//printf("g2 y%f\n", GoalPos2.Y);
+
+
 	printf("rotationinput %f\n", RotationInput); //-600~600
+/*
 	if(Action::GetInstance()->m_Joint.GetEnable(JointData::ID_R_ELBOW) == true)
 	Action::GetInstance()->m_Joint.SetAngle(5, MX28::Angle2Value(-90 + RotationInput));
 	if(Action::GetInstance()->m_Joint.GetEnable(JointData::ID_L_ELBOW) == true)
@@ -242,6 +238,25 @@ void Steer::Process()
 	Action::GetInstance()->m_Joint.SetAngle(2, MX28::Angle2Value(-90);
 
 */	
+
+	
+	delY_Old = delY;
+	printf("delY_Old: %f,delY: %f \n", delY_Old,delY);		
+	delY = 25*RotationInput;
+	delY= m*delY +(1-m)*delY_Old;
+	lsp = delY*.4453+lspOld;
+	lep = delY*1.8*.1799+lepOld;	
+
+	rsp = delY*.4453+rspOld;
+	rep = delY*1.8*.1799+repOld;
+
+	Action::GetInstance()->m_Joint.SetAngle(1, rsp);  
+	Action::GetInstance()->m_Joint.SetAngle(2, lsp); 
+	Action::GetInstance()->m_Joint.SetAngle(5, rep); 
+	Action::GetInstance()->m_Joint.SetAngle(6, lep);  
+	Action::GetInstance()->m_Joint.SetAngle(3, -40); //right roll
+	Action::GetInstance()->m_Joint.SetAngle(4, 40); //cw left shoulder roll-90
+
 	//usleep(50);
 		//fprintf(stderr, "[STEER]");
 	

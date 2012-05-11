@@ -140,8 +140,8 @@ Point2D& ColorFinder::GetPosition(Image* hsv_img)
 
     Filtering(hsv_img);
 
-    //ImgProcess::Erosion(m_result);
-    //ImgProcess::Erosion(m_result);
+    ImgProcess::Erosion(m_result);
+    ImgProcess::Erosion(m_result);
     ImgProcess::Erosion(m_result);
     ImgProcess::Dilation(m_result);
     ImgProcess::Dilation(m_result);

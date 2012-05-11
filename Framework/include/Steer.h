@@ -16,7 +16,8 @@ namespace Robot
 {
 	class Steer
 	{
-	private:int m_NoBallCount;
+	private:
+		int m_NoBallCount;
 		double OffsetGain, AngleGain;      //added
 		double rotation;
 		double old_rotation;
@@ -37,10 +38,18 @@ namespace Robot
 		double RotationInput;
 		double TurnAngle;
 		Point2D GoalPos;
+		float delY;	
+		float delY_Old;
+		float lspOld;
+		float lepOld;
+		float rspOld;
+		float repOld;	
+		float lsp,lep,rsp,rep;
 
 	protected:
 
 	public:
+		Steer();
 		bool DEBUG_PRINT;
 		double width;
 		double height;
@@ -49,8 +58,9 @@ namespace Robot
 		int scanLine1Center;
 		int scanLine2Center;	
 		Image* currentImage;  
-		Steer();
+		
 		~Steer();
+		
 
 		void Process();
 		void Initialize();

@@ -26,8 +26,8 @@ Head::Head()
 
 	m_LeftLimit = 50; //70  jane edit
 	m_RightLimit = -50;//-70
-	m_TopLimit = Kinematics::EYE_TILT_OFFSET_ANGLE - 35; //EYE_TILT_OFFSET_ANGLE =40
-	m_BottomLimit = Kinematics::EYE_TILT_OFFSET_ANGLE-45;//EYE_TILT_OFFSET_ANGLE - 65
+	m_TopLimit = Kinematics::EYE_TILT_OFFSET_ANGLE - 15; //EYE_TILT_OFFSET_ANGLE =40
+	m_BottomLimit = Kinematics::EYE_TILT_OFFSET_ANGLE-20;//EYE_TILT_OFFSET_ANGLE - 65
 
 	m_Pan_Home = 0.0;
 	m_Tilt_Home = Kinematics::EYE_TILT_OFFSET_ANGLE - 30.0;

@@ -44,6 +44,8 @@
 #define U2D_DEV_NAME0       "/dev/ttyUSB0"
 #define U2D_DEV_NAME1       "/dev/ttyUSB1"
 
+
+	
 LinuxCM730 linux_cm730(U2D_DEV_NAME0);
 CM730 cm730(&linux_cm730);
 
@@ -64,7 +66,6 @@ void sighandler(int sig)
 
 int main(void)
 {
-	int i = 0;
     signal(SIGABRT, &sighandler);
     signal(SIGTERM, &sighandler);
     signal(SIGQUIT, &sighandler);
@@ -87,6 +88,7 @@ int main(void)
     
     RoadTracker roadtracker = RoadTracker();
     Steer steer;			         //Steer Class, steer object
+	steer.Initialize();
     steer.currentImage = rgb_output;             //Steer class member
     ImgProcess imgprocess = ImgProcess();
 
@@ -157,7 +159,7 @@ int main(void)
 	
         //ColorFinder* greyscale = new ColorFinder(0, 15, 0, grey, 0.3, 50.0);
 	
-	Head::GetInstance()->m_Joint.SetEnableHeadOnly(true, true);
+	Head::GetInstance()->m_Joint.SetEnableHeadOnly(false, true);
 
 	//find color using only saturation in HSV, 	
 	roadtracker.Process(road_finder->GetPosition(LinuxCamera::GetInstance()->fbuffer->m_HSVFrame));
@@ -171,48 +173,9 @@ int main(void)
 		}  
 	   }
 		
-	  //steer.Process();
+	  steer.Process();
 	  streamer->send_image(rgb_output);
 
-	//printf("right shoulder %f", Action::GetInstance()->m_Joint.GetAngle(1));  //right shoulder
-	//printf("left shoulder %f", Action::GetInstance()->m_Joint.GetAngle(2));
-	float delY = 0;
-	float count = 0;	
-	float lsp,lep,rsp,rep;
-	float lspOld = -50;
-	float lepOld = 25;
-	float rspOld = 50;
-	float repOld = -25;
-
-	while (1) {
-
-		delY = 25*sin(count);
-		lsp = delY*.4453+lspOld;
-		lep = delY*1.8*.1799+lepOld;	//.1799
-
-		rsp = delY*.4453+rspOld;
-		rep = delY*1.8*.1799+repOld;
-		//Action::GetInstance()->m_Joint.SetAngle(1, 50);  //ccw 90
-		Action::GetInstance()->m_Joint.SetAngle(1, rsp);  //ccw 90
-		//Action::GetInstance()->m_Joint.SetAngle(2, -50); //cw left shoulder -90
-		Action::GetInstance()->m_Joint.SetAngle(2, lsp); //cw left shoulder -90
-		//Action::GetInstance()->m_Joint.SetAngle(5, -25); //cw right elbow -90
-		Action::GetInstance()->m_Joint.SetAngle(5, rep); //cw right elbow -90
-		//Action::GetInstance()->m_Joint.SetAngle(6, 25);  //ccw 90 left elbow
-		Action::GetInstance()->m_Joint.SetAngle(6, lep);  //ccw 90 left elbow
-		Action::GetInstance()->m_Joint.SetAngle(3, -40); //right roll
-		Action::GetInstance()->m_Joint.SetAngle(4, 40); //cw left shoulder roll-90
-
-		count += .0000002*3.141592654;
-	}
-	/*int j = 0;
-       if ( j < 30)
-	{	for (j = 0; j<30; j++)
-		{
-			
-		}
-	}
-*/
    } 
 
 	return 0;
