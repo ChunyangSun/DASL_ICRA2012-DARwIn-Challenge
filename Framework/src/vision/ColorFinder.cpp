@@ -160,16 +160,16 @@ Point2D& ColorFinder::GetPosition(Image* hsv_img)
         }
     }
 
-    if(count <= (hsv_img->m_NumberOfPixels * m_min_percent / 100) || count > (hsv_img->m_NumberOfPixels * m_max_percent / 100))
-    {
-        m_center_point.X = -1.0;
-        m_center_point.Y = -1.0;
-    }
-    else
-    {
+    //if(count <= (hsv_img->m_NumberOfPixels * m_min_percent / 100) || count > (hsv_img->m_NumberOfPixels * m_max_percent / 100))
+    //{
+      //  m_center_point.X = -1.0;
+      // m_center_point.Y = -1.0;
+    //}
+    //else
+    //{
         m_center_point.X = (int)((double)sum_x / (double)count);
         m_center_point.Y = (int)((double)sum_y / (double)count);
-    }
+    //}
 
     return m_center_point;
 

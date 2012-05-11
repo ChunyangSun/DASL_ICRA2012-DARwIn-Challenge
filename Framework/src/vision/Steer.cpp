@@ -19,6 +19,7 @@
 #include "ColorFinder.h"
 #include "math.h"
 #include "RoadTracker.h"
+#include "Kinematics.h"
 using namespace Robot;
 #define PI 3.14159265
 
@@ -26,11 +27,12 @@ Steer::Steer()
 {
 	DEBUG_PRINT = false;
 
-	k = 1500000;      //change from 4
+	OffsetGain = -0.01;      
+	AngleGain = 0.4;
 	rotation = 0.0;
 	old_rotation = 0.0;
 	rotation_diff = 0;
-	width = Camera::WIDTH;
+	width =  Camera::WIDTH;
 	height = Camera::HEIGHT;	
 	scanLine1 = 80;
 	scanLine2 = height - 80;
@@ -42,17 +44,15 @@ Steer::Steer()
 	endp2 = -1;
 	i = 0;
 	j = 0;
-	m = 0.1; //filter const for rotation
+	m = 0.05; //filter const for rotation
 	offset = width/2;
 	m_left_ini = 0;
 	m_right_ini = 0;
 	p_gain = 2;
 	d_gain = 0.22;
 	RotationInput = 0;
-	//LeftRotation = 0;
-	//RightRotation = 0;
 	currentImage = NULL;	
-	//TurnAngle = 0;		
+	TurnAngle = 0;		
 }
 
 Steer::~Steer()
@@ -67,10 +67,6 @@ void Steer::Initialize()
 
 	m_left_ini = MotionStatus::m_CurrentJoints.GetValue(JointData::ID_R_ELBOW);
 	m_right_ini = MotionStatus::m_CurrentJoints.GetValue(JointData::ID_L_ELBOW);
-	//CheckLimit();
-
-	//InitTracking();
-	//MoveToHome();
 }
 
 void Steer::Filter()
@@ -89,53 +85,35 @@ void Steer::Filter()
 	
 }
 
-void Steer::CamPosToGoalPos(int CamX, int CamY)
+Point2D Steer::CamPosToGoalPos(double CamX, double CamY)
 {
-		double Pan = MotionStatus::m_CurrentJoints.GetAngle(JointData::ID_HEAD_PAN);  //horizontal
-		double Tilt = MotionStatus::m_CurrentJoints.GetAngle(JointData::ID_HEAD_TILT);//vertical
+		
 		int FOV_X = 60; //degree
 		int FOV_Y = 45;
 		int H = 450;    //height seat to ground: 210mm cam to seat:240mm
+		double Pan = MotionStatus::m_CurrentJoints.GetAngle(JointData::ID_HEAD_PAN);  //horizontal, middle is 0, rightside is "-"
 		
-		//printf("Pan %lf\n", Pan);
-		//printf("Tilt %lf\n\n", Tilt);
+		double Tilt = MotionStatus::m_CurrentJoints.GetAngle(JointData::ID_HEAD_TILT);//vertical
 
-		double GoalAngleY = CamY/(Camera::HEIGHT)*FOV_Y + (Tilt+40);  //Kinematics.h  eye tilt offset = 40
-		GoalPosY = H*tan(GoalAngleY/180*PI);
-		double GoalAngleX = CamX/(Camera::WIDTH)*FOV_X + Pan;
-		GoalPosX = GoalPosY*tan(GoalAngleX/180*PI);		     //do not use tan2(), seg fault
-		Radius = 2*(GoalPosX*GoalPosX + GoalPosY*GoalPosY)/GoalPosX;   //TurnAngle = 180/PI*atan(GoalPosX/GoalPosY); //-pi/2 to pi/2
+		printf("Pan %f", Pan); 
+		printf("Tilt %f \n\n", Tilt);
 		
-		//printf("DX %lf\n", GoalPosX);
-		//printf("DY %lf\n\n", GoalPosY);
+		double GoalAngleY = (CamY)/(double)height*FOV_Y + Tilt + 15;  //Kinematics.h 
+		GoalPos.Y = H*tan(GoalAngleY/180*PI);
+		double GoalAngleX = (CamX - (double) Camera::WIDTH/2)/(double)width*FOV_X + (-Pan); //horizontal, middle is 0, rightside is "+"
+		GoalPos.X = GoalPos.Y*tan(GoalAngleX/180*PI);		                            //do not use tan2(), seg fault
 
-}
-//if not seeing the goal, head turn to home position
-//assume a goal position GoalPosY = GoalPosY + 600;
-//go arnd the obstacle
-//go to the goal position even if sees the line before goal position
-//search for line 
-/*
-void Steer::ObstacleAvoid()
-{
-		GoalPosX = 
-		GoalPosY 
-		double ObstacleX = 
-		double ObstacleY = 
-		ObstAngle = 180/PI*atan(ObstacleY/ObstacleX);
-		if(ObstAngle < -80 || ObstAngle > 80)
-		{
-			//passed obstacle, search for goal;
-		}
-		else
-		{
-			DrivAngle = ObstAngle - GoalAngle;
-		}			
-		
-		
+		//Radius = 2*(GoalPosX*GoalPosX + GoalPosY*GoalPosY)/GoalPosX;   
+		//TurnAngle = 180/PI*atan(GoalPosY/GoalPosX); //-pi/2 to pi/2
+		printf("camera width %f", (CamX - Camera::WIDTH/2));
+		printf("GoalAngleX %f", GoalAngleX);
+		//printf("DX %lf\n", GoalPos.X);
+		//printf("DY %lf\n\n", GoalPos.Y);
+
+		return GoalPos;
 
 }
-*/
+
 void Steer::Process()
 {
 	Steer::Initialize();
@@ -146,7 +124,7 @@ void Steer::Process()
 
 	for( i = 320*scanLine1; i < 320*(scanLine1+1); i++)                       
 	{
-		if (currentImage->m_ImageData[i*currentImage->m_PixelSize + 1] == 255)
+		if (currentImage->m_ImageData[i*currentImage->m_PixelSize + 0] == 128 && currentImage->m_ImageData[i*currentImage->m_PixelSize + 1] == 255 && currentImage->m_ImageData[i*currentImage->m_PixelSize + 2] == 128)
 		{
 				if(begp1 == -1){
 				begp1 = i;
@@ -162,7 +140,7 @@ void Steer::Process()
 	
 	for( j = 320*scanLine2; j < 320*(scanLine2+1); j++)                       
 	{	
-		if (currentImage->m_ImageData[j*currentImage->m_PixelSize + 1] == 255)
+		if (currentImage->m_ImageData[j*currentImage->m_PixelSize + 1] == 255 )
 		{
 				if(begp2 == -1)
 				{
@@ -178,19 +156,26 @@ void Steer::Process()
 		}
 		
 	}	
-	
-	printf("%d\n", (int)(scanLine1Center+scanLine2Center)/2); //0--320
-	//printf("%d\n", scanLine2Center); //0--320
-	//printf("rotation %f", rotation); //-30~30 with k = 0.2
-	
-	if(scanLine1Center == 0 && scanLine2Center != 0)
-	Steer::CamPosToGoalPos((int)scanLine2Center, (int)scanLine2);
-	else if(scanLine1Center != 0 && scanLine2Center == 0)
-	Steer::CamPosToGoalPos((int)scanLine1Center, (int)scanLine1);
-	else if(scanLine1Center != 0 && scanLine2Center != 0)
-	Steer::CamPosToGoalPos((int)(scanLine1Center+scanLine2Center)/2, height/2);
-	
 
+	
+	Point2D GoalPos2 = CamPosToGoalPos(scanLine2Center, (height - scanLine2));		
+	Point2D GoalPos1 = CamPosToGoalPos(scanLine1Center, (height - scanLine1));
+	if(scanLine1Center == 0)
+	{
+		GoalPos1.X = 0; 
+		GoalPos1.Y = 0;
+	}
+	if(scanLine2Center == 0)
+	{
+		GoalPos2.X = 0;
+		GoalPos2.Y = 0;
+	}
+	if((GoalPos2.Y - GoalPos1.Y) !=0)	
+	TurnAngle = 180/PI*atan((GoalPos2.X-GoalPos1.X)/(GoalPos2.Y-GoalPos1.Y));  //cot() = 1/tan(); (scanLine1Center - scanLine2Center)/(scanLine1 - scanLine2);
+	else
+	TurnAngle = 0;
+	
+	
 	//If road is not found, don't steer
 	if((scanLine1Center+scanLine2Center)<= 0)
 	{	
@@ -198,9 +183,9 @@ void Steer::Process()
 	}
 	else
 	{		
-		rotation = k/Radius;          //k*TurnAngle; //k*((scanLine1Center+scanLine2Center)/2-offset);
+		rotation = OffsetGain*(GoalPos2.X+GoalPos1.X)/2 + AngleGain*TurnAngle;          //k*TurnAngle; //k*((scanLine1Center+scanLine2Center)/2-offset);
 	}
-
+	printf("offset %f", (GoalPos2.X+GoalPos1.X)/2);
 	//Lowpass Filter calculated sensor data
 	//rotation = m*rotation +(1-m)*old_rotation;
 	
@@ -221,27 +206,42 @@ void Steer::Process()
 	Steer::Filter();
 
 	//motor limit
-	if (RotationInput>500)
+	if (RotationInput>90)
 	{
-		RotationInput = 500;	
+		RotationInput = 90;	
 	}
-	else if (RotationInput < -500)
+	else if (RotationInput < -90)
 	{
-		RotationInput = -500;	
+		RotationInput = -90;	
 	}
 	
 	RotationInput = -RotationInput;
 	
 	
 	//printf("rotation %f\n", rotation);
-	
-
-	//printf("rotationinput %f\n", RotationInput); //-600~600
+	printf("scan1x %d", scanLine1Center);   //0--320
+	printf("scan2x %d\n", scanLine2Center); //0--320
+	//printf("scanLine1 %d\n", scanLine1);
+	//printf("scanLine2 %d\n", scanLine2);
+	//printf("rotation %f", rotation); //-30~30 with k = 0.2
+	printf("turnangle %f\n", TurnAngle);
+	printf("g1 x%f\n", GoalPos1.X);
+	printf("g2 x%f\n", GoalPos2.X);
+	printf("g1 y%f\n", GoalPos1.Y);
+	printf("g2 y%f\n", GoalPos2.Y);
+/*
+	printf("rotationinput %f\n", RotationInput); //-600~600
 	if(Action::GetInstance()->m_Joint.GetEnable(JointData::ID_R_ELBOW) == true)
-	Action::GetInstance()->m_Joint.SetValue(5, 2000 - RotationInput);
+	Action::GetInstance()->m_Joint.SetAngle(5, MX28::Angle2Value(-90 + RotationInput));
 	if(Action::GetInstance()->m_Joint.GetEnable(JointData::ID_L_ELBOW) == true)
-	Action::GetInstance()->m_Joint.SetValue(6, 2000 - RotationInput);
-	
+	Action::GetInstance()->m_Joint.SetAngle(6, MX28::Angle2Value(90 + RotationInput);
+
+	if(Action::GetInstance()->m_Joint.GetEnable(JointData::ID_R_SHOULDER_PITCH) == true)
+	Action::GetInstance()->m_Joint.SetAngle(1, MX28::Angle2Value(90);
+	if(Action::GetInstance()->m_Joint.GetEnable(JointData::ID_L_SHOULDER_PITCH) == true)
+	Action::GetInstance()->m_Joint.SetAngle(2, MX28::Angle2Value(-90);
+
+*/	
 	//usleep(50);
 		//fprintf(stderr, "[STEER]");
 	

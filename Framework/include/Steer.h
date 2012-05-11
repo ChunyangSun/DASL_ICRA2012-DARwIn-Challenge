@@ -17,16 +17,11 @@ namespace Robot
 	class Steer
 	{
 	private:int m_NoBallCount;
-		double k;      //added
+		double OffsetGain, AngleGain;      //added
 		double rotation;
 		double old_rotation;
 		double rotation_diff;
-		int width;
-		int height;
-		int scanLine1;
-		int scanLine2;
-		int scanLine1Center;
-		int scanLine2Center;
+		
 		int begp1; 
 		int endp1;
 		int begp2; 
@@ -40,24 +35,26 @@ namespace Robot
 		double p_gain;
 		double d_gain;
 		double RotationInput;
-		double GoalPosX, GoalPosY;
-		double Radius;
-		//double TurnAngle;
+		double TurnAngle;
+		Point2D GoalPos;
 
 	protected:
 
 	public:
 		bool DEBUG_PRINT;
-				
+		double width;
+		double height;
+		int scanLine1;
+		int scanLine2;
+		int scanLine1Center;
+		int scanLine2Center;	
 		Image* currentImage;  
-
 		Steer();
 		~Steer();
-		
 
 		void Process();
 		void Initialize();
-		void CamPosToGoalPos(int CamX, int CamY);
+		Point2D CamPosToGoalPos(double CamX, double CamY);
 		void Filter();
 		
 	};
