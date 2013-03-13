@@ -77,7 +77,7 @@ void Steer::Initialize()
 	m_right_ini = MotionStatus::m_CurrentJoints.GetValue(JointData::ID_L_ELBOW);
 }
 
-void Steer::Filter()
+void Steer::Filter() //PD control 
 {
 	double pOffset, dOffset;
 
@@ -92,7 +92,7 @@ void Steer::Filter()
 	RotationInput = pOffset + dOffset;
 	
 }
-
+//The function takes the position of the camera image in DARwIn-OP and returns the actual position on the ground. 
 Point2D Steer::CamPosToGoalPos(double CamX, double CamY)
 {
 		
@@ -122,6 +122,8 @@ Point2D Steer::CamPosToGoalPos(double CamX, double CamY)
 
 }
 
+//The process scans two rows: scanline1 and scanline2. For each row, the beginPoint(begp) and endPoint(endp) of the road is obtained.
+//The middlePoint of the road is the average of begp and endp. Turnangle is obtained from the two middlePoints.
 void Steer::Process()
 {
 	Steer::Initialize();
@@ -239,7 +241,7 @@ void Steer::Process()
 
 */	
 
-	
+//From the rotationinput (end effector position), we get the elbow and shoulder angle. inverse kinematics/jacobian 	
 	delY_Old = delY;
 	printf("delY_Old: %f,delY: %f \n", delY_Old,delY);		
 	delY = 25*RotationInput;
